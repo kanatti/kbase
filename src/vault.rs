@@ -66,6 +66,16 @@ impl Vault {
         Ok(topics)
     }
 
+    /// Read the full content of a note by vault-relative path (e.g. "lucene/search-flow.md").
+    /// Returns an error if the path does not exist.
+    pub fn read_note(&self, path: &str) -> Result<String> {
+        let full_path = self.root.join(path);
+        if !full_path.exists() {
+            bail!("note not found: {}", path);
+        }
+        fs::read_to_string(&full_path).with_context(|| format!("Could not read {}", path))
+    }
+
     /// List all .md notes across the entire vault (all topics).
     pub fn all_notes(&self) -> Result<Vec<Note>> {
         let mut all = Vec::new();
