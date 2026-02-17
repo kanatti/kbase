@@ -2,42 +2,76 @@
 
 ## Location
 
-Config file: `~/.kb/config.toml`
+```
+~/.kb/config.toml
+```
 
 ## Format
 
 ```toml
-vault = "/path/to/your/vault"
+default = "personal"
+
+[vaults]
+personal = "~/Documents/kanatti-notes"
+work     = "~/Documents/work-notes"
 ```
 
-## Commands
+`default` names which vault to use when no `--vault` flag is given.
+Each key under `[vaults]` is a short name you choose; the value is the path (tilde-expanded).
+
+## Vault Resolution Order
+
+For every command, the vault is resolved in this order — first match wins:
+
+| Priority | Source | Example |
+|---|---|---|
+| 1 | `KB_VAULT` env var | `KB_VAULT=/tmp/testvault kb notes` |
+| 2 | `--vault <name>` flag | `kb --vault work notes` |
+| 3 | `default` in config | `default = "personal"` |
+
+`KB_VAULT` takes a **raw path** (not a vault name). Used for tests and one-off overrides.
+`--vault` takes a **vault name** from the config's `[vaults]` table.
+
+## Vault Management
 
 ```bash
-kb config                              # show current config and source
-kb config set vault /path/to/vault    # write or update vault path
+kb vault list                             # show all vaults, mark default with *
+kb vault add <name> <path>               # add or update a vault
+kb vault default <name>                  # change the default
+kb vault remove <name>                   # remove a vault (does not delete files)
 ```
 
-## Resolution Order
+Examples:
 
-`kb` resolves the vault path in this order, first one wins:
+```bash
+kb vault add personal ~/Documents/kanatti-notes
+kb vault add work ~/Documents/work-notes
+kb vault default personal
+kb vault list
+  * personal  ~/Documents/kanatti-notes
+    work      ~/Documents/work-notes
+```
 
-1. `--vault` flag (per-call override)
-2. `KB_VAULT` environment variable
-3. `~/.kb/config.toml`
+## Other Config
 
-## First Time Setup
+```bash
+kb config          # show full config and resolved vault path
+```
+
+No other config keys for now. Future options (editor, pager, etc.) will go here.
+
+## First-Time Setup
 
 ```bash
 $ kb topics
-No config found. Run `kb config set vault /path/to/vault` to get started.
+Error: no vaults configured. Run `kb vault add <name> <path>` to get started.
 
-$ kb config set vault ~/Documents/my-notes
-Config written to ~/.kb/config.toml
+$ kb vault add personal ~/Documents/kanatti-notes
+Added vault "personal" → ~/Documents/kanatti-notes
+Set as default.
 
 $ kb topics
 ...
 ```
 
-## Future Config Options
-
-More options will be added here as needed.
+The first vault added is automatically set as the default.
