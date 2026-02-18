@@ -357,7 +357,7 @@ Full-text search across the vault using ripgrep.
 
 ```
 kb search "BKD tree"
-kb search "BKD tree" -t lucene elasticsearch    # scoped to domains
+kb search "BKD tree" --domain lucene elasticsearch    # scoped to domains
 kb search "BKD tree" --matches                  # show matching lines
 kb search "BKD tree" --matches --context 2      # +2 lines of context
 kb search "phase:2" --matches                   # works for any pattern
@@ -383,7 +383,7 @@ elasticsearch/esql-analysis.md
 
 Flags:
 ```
--t, --domain DOMAIN [DOMAIN...]   limit search to these domain folders
+--domain DOMAIN [DOMAIN...]   limit search to these domain folders
 --matches                       show matching lines (like rg --no-heading)
 --context N, -C N              lines of context around matches (implies --matches)
 --case, -s                      case-sensitive (default: case-insensitive)
@@ -465,7 +465,7 @@ These are forgotten or isolated notes.
 
 ```
 kb orphans
-kb orphans -t lucene               # only check within lucene domain
+kb orphans --domain lucene               # only check within lucene domain
 kb orphans --total                 # count only
 ```
 
@@ -488,7 +488,7 @@ List notes with NO outgoing links — they link to nothing else.
 
 ```
 kb deadends
-kb deadends -t elasticsearch
+kb deadends --domain elasticsearch
 ```
 
 ---
@@ -500,7 +500,7 @@ don't exist.
 
 ```
 kb unresolved
-kb unresolved -t elasticsearch          # scoped to a domain
+kb unresolved --domain elasticsearch          # scoped to a domain
 kb unresolved --verbose                 # show source file for each broken link
 ```
 
@@ -527,7 +527,7 @@ List all `#tags` across the vault with counts.
 ```
 kb tags
 kb tags --sort count               # sort by frequency (default: name)
-kb tags -t lucene elasticsearch    # scoped to domains
+kb tags --domain lucene elasticsearch    # scoped to domains
 ```
 
 Output:
@@ -573,8 +573,8 @@ List tasks across the vault.
 kb tasks                          # all incomplete tasks in vault
 kb tasks --done                   # completed tasks
 kb tasks --all                    # both complete and incomplete
-kb tasks -t elasticsearch         # scoped to a domain
-kb tasks -t elasticsearch --file 03-task-board   # scoped to a file
+kb tasks --domain elasticsearch         # scoped to a domain
+kb tasks --domain elasticsearch --file 03-task-board   # scoped to a file
 kb tasks --verbose                # grouped by file with line numbers
 kb tasks --total                  # count only
 ```
@@ -748,7 +748,7 @@ Type a search query to search across these domains, or Ctrl+C to exit.
 ```
 
 After printing the overview, drops into an interactive search loop scoped to
-the selected domains. Each query runs `kb search <query> -t <domains>` and prints
+the selected domains. Each query runs `kb search <query> --domain <domains>` and prints
 results. Ctrl+C exits.
 
 If `--json` flag is passed, outputs the overview as JSON and exits immediately
@@ -764,7 +764,7 @@ Vault statistics summary.
 
 ```
 kb stats
-kb stats -t lucene           # stats for a single domain
+kb stats --domain lucene           # stats for a single domain
 ```
 
 Output:
@@ -884,7 +884,7 @@ organized by domain. Use `kb` CLI for all operations.
 ### Before starting research on a domain
 1. `kb read <domain>/01-home.md` — get the domain overview and current focus
 2. `kb ls <domain>` — see all notes in the domain
-3. `kb tasks -t <domain>` — see open tasks
+3. `kb tasks --domain <domain>` — see open tasks
 
 ### When exploring a code repo
 Match the repo name to a domain:
@@ -901,7 +901,7 @@ Use `--json` for machine-readable output.
 
 ### Finding relevant notes
 `kb search "<query>" --matches` — full-text with context
-`kb search "<query>" -t <domain>` — scoped to a domain
+`kb search "<query>" --domain <domain>` — scoped to a domain
 `kb backlinks <note>` — find related notes that link here
 
 ### Adding new knowledge
@@ -915,9 +915,9 @@ kb domains                                # all domains with counts
 kb ls lucene                             # list notes in lucene
 kb read lucene/search-flow-deep-dive     # read a specific note
 kb search "columnar format" --matches    # full-text search
-kb search "hash join" -t datafusion arrow --matches
+kb search "hash join" --domain datafusion arrow --matches
 kb research lucene datafusion --json     # research session overview
-kb tasks -t elasticsearch                # open tasks in a domain
+kb tasks --domain elasticsearch                # open tasks in a domain
 kb backlinks esql-analysis               # what links to this note
 kb orphans                               # forgotten notes
 kb report                                # full vault health check
