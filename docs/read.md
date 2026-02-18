@@ -16,14 +16,14 @@ kb read <path> --outline  # print heading structure only
 Always a path relative to the vault root, with `.md` extension:
 
 ```bash
-kb read lucene/search-flow.md      # note inside a topic
-kb read 01-home.md                 # root-level note (no topic prefix)
+kb read lucene/search-flow.md      # note inside a domain
+kb read 01-home.md                 # root-level note (no domain prefix)
 ```
 
 The path format is the same as `kb notes` output — copy-paste directly:
 
 ```bash
-kb notes --topic lucene
+kb notes --domain lucene
   lucene/01-home.md        Lucene
   lucene/search-flow.md    Search Flow Deep Dive
 
@@ -83,7 +83,7 @@ If the path does not exist relative to the vault root:
 Error: note not found: lucene/nonexistent.md
 ```
 
-No suggestions. Use `kb notes --topic lucene` to find the right path.
+No suggestions. Use `kb notes --domain lucene` to find the right path.
 
 ---
 

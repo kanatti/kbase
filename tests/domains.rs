@@ -6,11 +6,11 @@ use predicates::prelude::PredicateBooleanExt;
 use predicates::str::contains;
 
 #[test]
-fn topics_lists_topic_dirs() {
+fn domains_lists_domain_dirs() {
     let tmp = setup_vault();
 
     kb(&tmp)
-        .arg("topics")
+        .arg("domains")
         .assert()
         .success()
         .stdout(contains("elasticsearch"))
@@ -19,10 +19,10 @@ fn topics_lists_topic_dirs() {
 }
 
 #[test]
-fn topics_shows_note_counts() {
+fn domains_shows_note_counts() {
     let tmp = setup_vault();
 
-    let out = kb(&tmp).arg("topics").assert().success();
+    let out = kb(&tmp).arg("domains").assert().success();
     let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
 
     let es_line = stdout.lines().find(|l| l.contains("elasticsearch")).unwrap();
@@ -36,11 +36,11 @@ fn topics_shows_note_counts() {
 }
 
 #[test]
-fn topics_excludes_underscore_dirs() {
+fn domains_excludes_underscore_dirs() {
     let tmp = setup_vault();
 
     kb(&tmp)
-        .arg("topics")
+        .arg("domains")
         .assert()
         .success()
         .stdout(contains("__templates").not())
@@ -48,10 +48,10 @@ fn topics_excludes_underscore_dirs() {
 }
 
 #[test]
-fn topics_sorted_by_name_default() {
+fn domains_sorted_by_name_default() {
     let tmp = setup_vault();
 
-    let out = kb(&tmp).arg("topics").assert().success();
+    let out = kb(&tmp).arg("domains").assert().success();
     let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
     let names: Vec<&str> = stdout
         .lines()
@@ -61,15 +61,15 @@ fn topics_sorted_by_name_default() {
 
     let mut sorted = names.clone();
     sorted.sort();
-    assert_eq!(names, sorted, "topics should be sorted alphabetically");
+    assert_eq!(names, sorted, "domains should be sorted alphabetically");
 }
 
 #[test]
-fn topics_sorted_by_count() {
+fn domains_sorted_by_count() {
     let tmp = setup_vault();
 
     let out = kb(&tmp)
-        .args(["topics", "--sort", "count"])
+        .args(["domains", "--sort", "count"])
         .assert()
         .success();
     let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
@@ -84,11 +84,11 @@ fn topics_sorted_by_count() {
 }
 
 #[test]
-fn topics_no_vault_shows_error() {
+fn domains_no_vault_shows_error() {
     let tmp = setup_vault();
     let mut cmd = cargo_bin_cmd!("kb");
     cmd.env("KB_CONFIG_DIR", tmp.path());
     cmd.env_remove("KB_VAULT");
 
-    cmd.arg("topics").assert().failure().stderr(contains("Error"));
+    cmd.arg("domains").assert().failure().stderr(contains("Error"));
 }

@@ -7,7 +7,7 @@ pub struct Vault {
     pub root: PathBuf,
 }
 
-pub struct Topic {
+pub struct Domain {
     pub name: String,
     pub path: PathBuf,
     pub note_count: usize,
@@ -33,9 +33,9 @@ impl Vault {
         Ok(Vault { root })
     }
 
-    /// List all topic folders (top-level dirs, excluding those starting with `_` or `.`).
-    pub fn topics(&self) -> Result<Vec<Topic>> {
-        let mut topics = Vec::new();
+    /// List all domain folders (top-level dirs, excluding those starting with `_` or `.`).
+    pub fn domains(&self) -> Result<Vec<Domain>> {
+        let mut domains = Vec::new();
 
         for entry in fs::read_dir(&self.root).context("Could not read vault directory")? {
             let entry = entry.context("Could not read directory entry")?;
@@ -57,13 +57,13 @@ impl Vault {
 
             let note_count = count_md_files(&path).unwrap_or(0);
 
-            topics.push(Topic { name, path, note_count });
+            domains.push(Domain { name, path, note_count });
         }
 
         // Default: alphabetical
-        topics.sort_by(|a, b| a.name.cmp(&b.name));
+        domains.sort_by(|a, b| a.name.cmp(&b.name));
 
-        Ok(topics)
+        Ok(domains)
     }
 
     /// Read the full content of a note by vault-relative path (e.g. "lucene/search-flow.md").
@@ -76,30 +76,30 @@ impl Vault {
         fs::read_to_string(&full_path).with_context(|| format!("Could not read {}", path))
     }
 
-    /// List all .md notes across the entire vault (all topics).
+    /// List all .md notes across the entire vault (all domains).
     pub fn all_notes(&self) -> Result<Vec<Note>> {
         let mut all = Vec::new();
-        for topic in self.topics()? {
-            let mut notes = self.notes_in_topic(&topic.name)?;
+        for domain in self.domains()? {
+            let mut notes = self.notes_in_domain(&domain.name)?;
             all.append(&mut notes);
         }
         Ok(all)
     }
 
-    /// List all .md notes in a named topic folder.
-    pub fn notes_in_topic(&self, topic: &str) -> Result<Vec<Note>> {
-        let topic_path = self.root.join(topic);
+    /// List all .md notes in a named domain folder.
+    pub fn notes_in_domain(&self, domain: &str) -> Result<Vec<Note>> {
+        let domain_path = self.root.join(domain);
 
-        if !topic_path.exists() {
-            bail!("Topic not found: '{}'", topic);
+        if !domain_path.exists() {
+            bail!("Domain not found: '{}'", domain);
         }
-        if !topic_path.is_dir() {
-            bail!("'{}' is not a topic folder", topic);
+        if !domain_path.is_dir() {
+            bail!("'{}' is not a domain folder", domain);
         }
 
         let mut notes = Vec::new();
 
-        for entry in fs::read_dir(&topic_path).context("Could not read topic directory")? {
+        for entry in fs::read_dir(&domain_path).context("Could not read domain directory")? {
             let entry = entry.context("Could not read entry")?;
             let path = entry.path();
 

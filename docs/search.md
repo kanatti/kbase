@@ -9,12 +9,12 @@ How `kb notes --term` finds notes, and the path to Tantivy full-text search.
 Search is exposed via `kb notes --term`, not as a separate command:
 
 ```bash
-kb notes --term "search flow"               # search across all topics
-kb notes --topic lucene --term "search"     # scoped to a topic
+kb notes --term "search flow"               # search across all domains
+kb notes --domain lucene --term "search"     # scoped to a domain
 ```
 
 This keeps discovery unified — `kb notes` is always how you find notes,
-whether you're browsing by topic or searching by term.
+whether you're browsing by domain or searching by term.
 
 ---
 
@@ -37,12 +37,12 @@ kb notes --term "BKD tree"
     → rg -l -i "BKD tree" <vault>
     → collect matching file paths
     → resolve to Note structs
-    → display with topic/filename/title
+    → display with domain/filename/title
 ```
 
-Scoped to a topic:
+Scoped to a domain:
 ```
-kb notes --topic lucene --term "BKD tree"
+kb notes --domain lucene --term "BKD tree"
     → rg -l -i "BKD tree" <vault>/lucene/
 ```
 
@@ -78,7 +78,7 @@ Built by `kb index`, updated incrementally on each run by comparing file mtimes.
 | Field | Stored | Indexed |
 |-------|--------|---------|
 | `path` | yes | no |
-| `topic` | yes | yes |
+| `domain` | yes | yes |
 | `title` | yes | yes (boosted) |
 | `content` | no | yes |
 

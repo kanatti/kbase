@@ -14,19 +14,19 @@ Built once on first use via `OnceCell`, cached for the lifetime of the process.
 Vault
 ├── root: PathBuf
 └── index: OnceCell<Index>
-    ├── topics: Vec<Topic>
+    ├── domains: Vec<Domain>
     ├── notes: Vec<Note>
     ├── link_graph: LinkGraph
     ├── tag_map: TagMap
     └── tasks: Vec<Task>
 ```
 
-### Topic
+### Domain
 
 Represents a top-level folder in the vault.
 
 ```rust
-struct Topic {
+struct Domain {
     name: String,       // "elasticsearch"
     path: PathBuf,      // /vault/elasticsearch
     note_count: usize,  // number of .md files inside
@@ -74,7 +74,7 @@ struct LinkGraph {
 ```
 
 Link resolution: given raw link `[[esql-parser]]`:
-1. Try `{current_topic}/esql-parser.md`
+1. Try `{current_domain}/esql-parser.md`
 2. Try `**/esql-parser.md` anywhere in vault (first match)
 3. If neither found → unresolved
 
@@ -120,7 +120,7 @@ On first access to `vault.index()`:
    d. Parse tags (regex: #[a-zA-Z][a-zA-Z0-9_-]*)
    e. Parse tasks (regex: - \[(.)\] (.+))
    f. Build Note struct
-3. Collect all Topics from top-level dirs
+3. Collect all Domains from top-level dirs
 4. Build LinkGraph by resolving all raw links across notes
 5. Build TagMap from all notes' tags
 6. Collect all Tasks from all notes

@@ -31,10 +31,10 @@ repo, a pi session, or standalone in the terminal.
 ## Goals
 
 - Navigate 600+ markdown notes from the terminal without opening Obsidian
-- Search across the full vault or scoped to one or more topics
+- Search across the full vault or scoped to one or more domains
 - Map the link graph: backlinks, orphans, broken links, clusters
 - Track tasks across the vault
-- Support multi-topic research sessions (e.g. lucene + datafusion + arrow together)
+- Support multi-domain research sessions (e.g. lucene + datafusion + arrow together)
 - Be a first-class tool for the pi agent — Claude can navigate and update notes
   during any coding session
 - Stay simple: text files in, text output out, no daemons, no servers
@@ -72,27 +72,27 @@ kanatti-notes/
 ├── __attachments/          # Binary attachments (excluded from search)
 ├── __canvas/               # Obsidian canvas files (excluded from search)
 │
-├── elasticsearch/          # Topic folder
-│   ├── 01-home.md          # Topic index
-│   ├── 02-logs.md          # Topic work log
-│   ├── 03-task-board.md    # Topic tasks
-│   ├── 04-archive.md       # Completed work in this topic
+├── elasticsearch/          # Domain folder
+│   ├── 01-home.md          # Domain index
+│   ├── 02-logs.md          # Domain work log
+│   ├── 03-task-board.md    # Domain tasks
+│   ├── 04-archive.md       # Completed work in this domain
 │   └── esql-analysis.md    # Content notes
 ├── lucene/
 ├── datafusion/
 ├── rust/
-└── ...                     # ~50 topic folders total
+└── ...                     # ~50 domain folders total
 ```
 
-### Topic Folder Convention
+### Domain Folder Convention
 
-Most topic folders follow this pattern:
+Most domain folders follow this pattern:
 - `01-home.md` — overview, goals, current focus, links to key docs
 - `02-logs.md` — chronological work log
-- `03-task-board.md` — tasks specific to this topic
+- `03-task-board.md` — tasks specific to this domain
 - `04-archive.md` — completed phases/tasks
 
-Content notes are flat files in the topic folder, named with kebab-case.
+Content notes are flat files in the domain folder, named with kebab-case.
 
 ### Wikilink Format
 
@@ -100,13 +100,13 @@ Obsidian `[[wikilink]]` format is used throughout:
 
 ```
 [[note-name]]                    # short form, resolved by filename
-[[topic/note-name]]              # full path form
+[[domain/note-name]]              # full path form
 [[note-name|display text]]       # aliased link
 [[note-name#Section Heading]]    # link to heading
 ```
 
 Resolution rules (same as Obsidian):
-1. Exact path match from vault root: `topic/note-name.md`
+1. Exact path match from vault root: `domain/note-name.md`
 2. Filename match anywhere in vault: `note-name.md`
 3. Unresolved if neither found
 
@@ -217,10 +217,10 @@ def build_link_graph(vault: Path) -> dict:
     """
     Returns:
       {
-        "forward": { "topic/note": ["topic/other", "other-topic/note"] },
-        "reverse": { "topic/note": ["topic/source"] },
+        "forward": { "domain/note": ["domain/other", "other-domain/note"] },
+        "reverse": { "domain/note": ["domain/source"] },
         "all_notes": set of all note paths relative to vault root,
-        "unresolved": { "topic/note": ["broken-link-name"] }
+        "unresolved": { "domain/note": ["broken-link-name"] }
       }
     """
 ```
@@ -255,14 +255,14 @@ These flags work on all commands:
 
 ### Navigation
 
-#### `kb topics`
+#### `kb domains`
 
-List all topic folders with note counts.
+List all domain folders with note counts.
 
 ```
-kb topics
-kb topics --sort count       # sort by note count descending
-kb topics --sort name        # sort alphabetically (default)
+kb domains
+kb domains --sort count       # sort by note count descending
+kb domains --sort name        # sort alphabetically (default)
 ```
 
 Output:
@@ -279,14 +279,14 @@ Implementation: `os.scandir(vault)`, filter for directories not starting with
 
 ---
 
-#### `kb ls <topic>`
+#### `kb ls <domain>`
 
-List notes in a topic folder with their first heading (or filename if no
+List notes in a domain folder with their first heading (or filename if no
 heading).
 
 ```
 kb ls lucene
-kb ls lucene elasticsearch          # list notes across multiple topics
+kb ls lucene elasticsearch          # list notes across multiple domains
 kb ls lucene --files                # filenames only, no heading preview
 ```
 
@@ -302,7 +302,7 @@ lucene/
   ...
 ```
 
-Implementation: list `.md` files in the topic dir, read first `# Heading` from
+Implementation: list `.md` files in the domain dir, read first `# Heading` from
 each file (first 5 lines only, fast).
 
 ---
@@ -331,9 +331,9 @@ Implementation: regex `^(#{1,6})\s+(.+)` on each line, indent by heading level.
 
 ---
 
-#### `kb random [topic]`
+#### `kb random [domain]`
 
-Print a random note from the vault or a specific topic. Useful for spaced
+Print a random note from the vault or a specific domain. Useful for spaced
 review — surfacing notes you forgot about.
 
 ```
@@ -357,7 +357,7 @@ Full-text search across the vault using ripgrep.
 
 ```
 kb search "BKD tree"
-kb search "BKD tree" -t lucene elasticsearch    # scoped to topics
+kb search "BKD tree" -t lucene elasticsearch    # scoped to domains
 kb search "BKD tree" --matches                  # show matching lines
 kb search "BKD tree" --matches --context 2      # +2 lines of context
 kb search "phase:2" --matches                   # works for any pattern
@@ -383,7 +383,7 @@ elasticsearch/esql-analysis.md
 
 Flags:
 ```
--t, --topic TOPIC [TOPIC...]   limit search to these topic folders
+-t, --domain DOMAIN [DOMAIN...]   limit search to these domain folders
 --matches                       show matching lines (like rg --no-heading)
 --context N, -C N              lines of context around matches (implies --matches)
 --case, -s                      case-sensitive (default: case-insensitive)
@@ -393,8 +393,8 @@ Flags:
 
 Implementation:
 ```python
-def search(query, topics=None, matches=False, context=0, case=False):
-    paths = [vault/t for t in topics] if topics else [vault]
+def search(query, domains=None, matches=False, context=0, case=False):
+    paths = [vault/t for t in domains] if domains else [vault]
     cmd = ["rg", "--glob=*.md", "-i" if not case else ""]
     if not matches:
         cmd += ["-l"]
@@ -405,8 +405,8 @@ def search(query, topics=None, matches=False, context=0, case=False):
     # Run per-path and merge results
 ```
 
-When multiple topics are specified, run ripgrep once per topic and deduplicate
-results. Present results grouped by topic.
+When multiple domains are specified, run ripgrep once per domain and deduplicate
+results. Present results grouped by domain.
 
 ---
 
@@ -465,7 +465,7 @@ These are forgotten or isolated notes.
 
 ```
 kb orphans
-kb orphans -t lucene               # only check within lucene topic
+kb orphans -t lucene               # only check within lucene domain
 kb orphans --total                 # count only
 ```
 
@@ -500,7 +500,7 @@ don't exist.
 
 ```
 kb unresolved
-kb unresolved -t elasticsearch          # scoped to a topic
+kb unresolved -t elasticsearch          # scoped to a domain
 kb unresolved --verbose                 # show source file for each broken link
 ```
 
@@ -527,7 +527,7 @@ List all `#tags` across the vault with counts.
 ```
 kb tags
 kb tags --sort count               # sort by frequency (default: name)
-kb tags -t lucene elasticsearch    # scoped to topics
+kb tags -t lucene elasticsearch    # scoped to domains
 ```
 
 Output:
@@ -573,7 +573,7 @@ List tasks across the vault.
 kb tasks                          # all incomplete tasks in vault
 kb tasks --done                   # completed tasks
 kb tasks --all                    # both complete and incomplete
-kb tasks -t elasticsearch         # scoped to a topic
+kb tasks -t elasticsearch         # scoped to a domain
 kb tasks -t elasticsearch --file 03-task-board   # scoped to a file
 kb tasks --verbose                # grouped by file with line numbers
 kb tasks --total                  # count only
@@ -663,9 +663,9 @@ Appends with a preceding blank line if the note doesn't end with one.
 
 ---
 
-#### `kb new <topic> <name>`
+#### `kb new <domain> <name>`
 
-Create a new note in a topic folder.
+Create a new note in a domain folder.
 
 ```
 kb new lucene jump-tables-deep-dive
@@ -701,10 +701,10 @@ Daily log path resolution: `_logs/YYYY-MM.md` based on current date.
 
 ### Research Mode
 
-#### `kb research <topic> [topic2 ...]`
+#### `kb research <domain> [domain2 ...]`
 
-Multi-topic exploration mode. Combines listing and search across a set of
-related topics. Designed for deep-dive sessions that span multiple areas.
+Multi-domain exploration mode. Combines listing and search across a set of
+related domains. Designed for deep-dive sessions that span multiple areas.
 
 ```
 kb research lucene datafusion arrow
@@ -718,7 +718,7 @@ Output:
 Research Session: lucene • datafusion • arrow
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-TOPICS
+DOMAINS
   lucene        22 notes    7 open tasks
   datafusion     9 notes    3 open tasks
   arrow          5 notes    1 open task
@@ -728,12 +728,12 @@ HOME NOTES
   datafusion/01-home.md
   arrow/01-home.md
 
-OPEN TASKS (across all topics)
+OPEN TASKS (across all domains)
   lucene/01-home.md:8                  [ ] LongPoint and BKD Trees
   datafusion/01-home.md:12             [ ] Read DataFusion query optimizer source
   ...
 
-CROSS-LINKS (links between these topics)
+CROSS-LINKS (links between these domains)
   datafusion/query-execution.md  →  arrow/columnar-format.md
   arrow/01-home.md               →  lucene/binary-doc-values.md
 
@@ -743,12 +743,12 @@ RECENT NOTES (last modified)
   arrow/ipc-format.md                   2 weeks ago
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Type a search query to search across these topics, or Ctrl+C to exit.
+Type a search query to search across these domains, or Ctrl+C to exit.
 > 
 ```
 
 After printing the overview, drops into an interactive search loop scoped to
-the selected topics. Each query runs `kb search <query> -t <topics>` and prints
+the selected domains. Each query runs `kb search <query> -t <domains>` and prints
 results. Ctrl+C exits.
 
 If `--json` flag is passed, outputs the overview as JSON and exits immediately
@@ -764,7 +764,7 @@ Vault statistics summary.
 
 ```
 kb stats
-kb stats -t lucene           # stats for a single topic
+kb stats -t lucene           # stats for a single domain
 ```
 
 Output:
@@ -772,13 +772,13 @@ Output:
 Vault: ~/Documents/kanatti-notes
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Notes              658
-Topics              52
+Domains              52
 Open tasks          47
 Total words    ~94,000
 Orphan notes        23
 Unresolved links     7
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Largest topics:
+Largest domains:
   lucene             22 notes
   elasticsearch      18 notes
   rust               14 notes
@@ -863,61 +863,61 @@ session. When the agent is:
 ```markdown
 ---
 name: kb-notes
-description: Access and manage the kanatti-notes knowledge base. Use when the user asks to search, read, update, or navigate personal notes; when researching a technical topic and need context from prior notes; or when working in a code repo that has a related notes topic.
+description: Access and manage the kanatti-notes knowledge base. Use when the user asks to search, read, update, or navigate personal notes; when researching a technical domain and need context from prior notes; or when working in a code repo that has a related notes domain.
 ---
 
 # kb-notes — Knowledge Base Skill
 
 Personal knowledge base at ~/Documents/kanatti-notes. 658+ markdown notes
-organized by topic. Use `kb` CLI for all operations.
+organized by domain. Use `kb` CLI for all operations.
 
 ## Key Conventions
 
-- Topics = top-level folders: elasticsearch, lucene, datafusion, rust, etc.
-- Each topic has 01-home.md (overview), 03-task-board.md (tasks)
+- Domains = top-level folders: elasticsearch, lucene, datafusion, rust, etc.
+- Each domain has 01-home.md (overview), 03-task-board.md (tasks)
 - Notes use [[wikilink]] format for cross-references
 - Tasks: `- [ ]` incomplete, `- [x]` done
 - No YAML frontmatter in most notes — metadata is inline bold text
 
 ## Workflows
 
-### Before starting research on a topic
-1. `kb read <topic>/01-home.md` — get the topic overview and current focus
-2. `kb ls <topic>` — see all notes in the topic
-3. `kb tasks -t <topic>` — see open tasks
+### Before starting research on a domain
+1. `kb read <domain>/01-home.md` — get the domain overview and current focus
+2. `kb ls <domain>` — see all notes in the domain
+3. `kb tasks -t <domain>` — see open tasks
 
 ### When exploring a code repo
-Match the repo name to a topic:
-- ~/Code/elasticsearch → topic: elasticsearch
-- ~/Code/lucene → topic: lucene
-- ~/Code/datafusion → topic: datafusion
-- ~/Code/arrow-rs → topic: arrow
-Run `kb read <topic>/01-home.md` to get context before diving into code.
+Match the repo name to a domain:
+- ~/Code/elasticsearch → domain: elasticsearch
+- ~/Code/lucene → domain: lucene
+- ~/Code/datafusion → domain: datafusion
+- ~/Code/arrow-rs → domain: arrow
+Run `kb read <domain>/01-home.md` to get context before diving into code.
 
-### Cross-topic research
-`kb research lucene datafusion arrow` — shows overview of all three topics,
+### Cross-domain research
+`kb research lucene datafusion arrow` — shows overview of all three domains,
 cross-links between them, and drops into interactive search.
 Use `--json` for machine-readable output.
 
 ### Finding relevant notes
 `kb search "<query>" --matches` — full-text with context
-`kb search "<query>" -t <topic>` — scoped to a topic
+`kb search "<query>" -t <domain>` — scoped to a domain
 `kb backlinks <note>` — find related notes that link here
 
 ### Adding new knowledge
 `kb append <note> "## New Finding\n\ncontent"` — add to existing note
-`kb new <topic> <name>` — create new note
+`kb new <domain> <name>` — create new note
 
 ## Common Commands
 
 \`\`\`bash
-kb topics                                # all topics with counts
+kb domains                                # all domains with counts
 kb ls lucene                             # list notes in lucene
 kb read lucene/search-flow-deep-dive     # read a specific note
 kb search "columnar format" --matches    # full-text search
 kb search "hash join" -t datafusion arrow --matches
 kb research lucene datafusion --json     # research session overview
-kb tasks -t elasticsearch                # open tasks in a topic
+kb tasks -t elasticsearch                # open tasks in a domain
 kb backlinks esql-analysis               # what links to this note
 kb orphans                               # forgotten notes
 kb report                                # full vault health check
@@ -963,8 +963,8 @@ mkdir -p ~/.pi/agent/skills/kb-notes
 For quick access from code repos:
 
 ```bash
-for topic in elasticsearch lucene datafusion arrow rust; do
-  ln -s ~/Documents/kanatti-notes/$topic ~/Code/$topic/.notes 2>/dev/null
+for domain in elasticsearch lucene datafusion arrow rust; do
+  ln -s ~/Documents/kanatti-notes/$domain ~/Code/$domain/.notes 2>/dev/null
 done
 ```
 
@@ -995,7 +995,7 @@ CREATE VIRTUAL TABLE notes_fts USING fts5(
 -- Structured metadata (separate from FTS)
 CREATE TABLE notes (
   path TEXT PRIMARY KEY,
-  topic TEXT,
+  domain TEXT,
   title TEXT,
   word_count INTEGER,
   modified_at INTEGER,    -- unix timestamp
@@ -1060,7 +1060,7 @@ the index. The index is auto-used when present.
 
 Build in this order:
 
-1. **Navigation** (`topics`, `ls`, `outline`, `random`) — pure filesystem, no deps
+1. **Navigation** (`domains`, `ls`, `outline`, `random`) — pure filesystem, no deps
 2. **Read/Write** (`read`, `open`, `append`, `new`, `daily`) — filesystem
 3. **Search** (`search`) — ripgrep integration
 4. **Tasks** (`tasks`, `task done`) — ripgrep + file edit

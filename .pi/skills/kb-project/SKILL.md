@@ -8,7 +8,7 @@ description: Reference for working on the kb codebase — a personal knowledge b
 Personal knowledge base CLI in Rust. Navigates markdown vaults (Obsidian format).
 
 - **Repo:** `~/Code/kb`
-- **Vault under development against:** `~/Documents/kanatti-notes` (658 notes, ~52 topics)
+- **Vault under development against:** `~/Documents/kanatti-notes` (658 notes, ~52 domains)
 
 ## Key Docs
 
@@ -21,8 +21,8 @@ Read these before working on any feature:
 | `docs/vault.md` | Vault/Index in-memory structures |
 | `docs/parsing.md` | Phase 1 (regex) vs Phase 2 (tree-sitter) parsing |
 | `docs/search.md` | `--term` search: ripgrep (Phase 1) → Tantivy (Phase 2) |
-| `docs/descriptions.md` | How note/topic descriptions are extracted |
-| `docs/topics.md` | What a topic is, exclusion rules |
+| `docs/descriptions.md` | How note/domain descriptions are extracted |
+| `docs/domains.md` | What a domain is, exclusion rules |
 | `docs/config.md` | Config file format and resolution order |
 
 ## Source Layout
@@ -31,17 +31,17 @@ Read these before working on any feature:
 src/
   main.rs       — clap CLI, command dispatch
   config.rs     — Config struct, load/save, KB_CONFIG_DIR
-  vault.rs      — Vault, Topic, Note structs + filesystem methods
+  vault.rs      — Vault, Domain, Note structs + filesystem methods
 ```
 
 ## Current Implementation Status
 
 Done:
 - Step 1: `kb config` / `kb config set vault <path>`
-- Step 2: `kb topics`, `kb notes`, `kb notes --topic <topic>`
+- Step 2: `kb domains`, `kb notes`, `kb notes --domain <domain>`
 
 Next:
-- Step 3: `kb read <topic>/<note>` — full path only, no ambiguity
+- Step 3: `kb read <domain>/<note>` — full path only, no ambiguity
 - Step 4: `kb outline <note>` — heading tree from a single file
 - Step 5: `kb notes --term` — ripgrep-backed content search
 
@@ -52,10 +52,10 @@ See `docs/implementation.md` for full step list.
 ```bash
 kb config                        # show config
 kb config set vault <path>       # set vault path
-kb topics                        # list topics with note counts
-kb topics --sort count           # sort by note count
+kb domains                        # list domains with note counts
+kb domains --sort count           # sort by note count
 kb notes                         # list all notes
-kb notes --topic <topic>         # list notes in topic
+kb notes --domain <domain>         # list notes in domain
 kb notes --files                 # filenames only
 kb notes --term <term>           # not yet implemented
 ```
@@ -65,7 +65,7 @@ kb notes --term <term>           # not yet implemented
 - **Error handling:** `anyhow` everywhere, single handler in `main`
 - **Vault resolution:** `--vault` flag → `KB_VAULT` env → `~/.kb/config.toml`
 - **Config dir override:** `KB_CONFIG_DIR` env (used in tests)
-- **Topics:** top-level dirs not starting with `_` or `.`
+- **Domains:** top-level dirs not starting with `_` or `.`
 - **No frontmatter** in most vault notes — metadata is inline bold text
 - **Phase 1:** in-memory only, full index built per run
 - **Phase 2:** Tantivy index at `~/.kb/index/`, SQLite dropped in favour of Tantivy
@@ -74,7 +74,7 @@ kb notes --term <term>           # not yet implemented
 
 ```bash
 cargo test                # run all tests
-cargo test topics         # run only topics tests
+cargo test domains         # run only domains tests
 ```
 
 Test isolation: each test copies `tests/fixtures/vault/` into a fresh `TempDir`.
@@ -88,7 +88,7 @@ tests/fixtures/vault/
   rust/            (1 note)
   __templates/     (excluded)
   _logs/           (excluded)
-  01-home.md       (root file, not a topic)
+  01-home.md       (root file, not a domain)
 ```
 
 ## Key Cargo Dependencies

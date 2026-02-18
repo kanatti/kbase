@@ -1,13 +1,13 @@
 # Descriptions
 
-How `kb` extracts a short description for topics and notes, used in `kb ls`
+How `kb` extracts a short description for domains and notes, used in `kb ls`
 and anywhere a summary is needed.
 
 ---
 
 ## What a description is
 
-A one-line (or short) summary of what a note or topic is about. Not the full
+A one-line (or short) summary of what a note or domain is about. Not the full
 content — just enough to distinguish it at a glance.
 
 ```
@@ -55,16 +55,16 @@ descriptions just omit the column.
 
 ---
 
-## For topics
+## For domains
 
-Topic description comes from `01-home.md` in the topic folder, using the same
+Domain description comes from `01-home.md` in the domain folder, using the same
 resolution order above. If `01-home.md` does not exist, description is `None`.
 
 ---
 
 ## In code
 
-`Note` and `Topic` both get an `Option<String>` description field:
+`Note` and `Domain` both get an `Option<String>` description field:
 
 ```rust
 struct Note {
@@ -74,7 +74,7 @@ struct Note {
     description: Option<String>,  // ← added
 }
 
-struct Topic {
+struct Domain {
     name: String,
     path: PathBuf,
     note_count: usize,

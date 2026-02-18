@@ -55,12 +55,12 @@ Powers `kb notes --term <query>` with BM25-ranked full-text search.
 | Field     | Type    | Stored | Indexed | Boost |
 |-----------|---------|--------|---------|-------|
 | `path`    | TEXT    | yes    | no      | —     |
-| `topic`   | TEXT    | yes    | yes     | 1×    |
+| `domain`   | TEXT    | yes    | yes     | 1×    |
 | `title`   | TEXT    | yes    | yes     | 2×    |
 | `content` | TEXT    | no     | yes     | 1×    |
 
 - `path` — vault-relative path (`lucene/search-flow.md`). Stored for retrieval, not searchable.
-- `topic` — folder name (`lucene`). Stored + indexed for topic-scoped queries.
+- `domain` — folder name (`lucene`). Stored + indexed for domain-scoped queries.
 - `title` — first `# Heading` or filename stem. Boosted 2× so title matches rank higher than body matches.
 - `content` — full raw markdown text. Indexed only (not stored); not needed after search.
 
@@ -74,8 +74,8 @@ kb notes --term "BKD tree"
   → return stored path + title fields
   → display ranked results (path column, title column)
 
-kb notes --term "BKD tree" --topic lucene
-  → same query + topic:"lucene" filter
+kb notes --term "BKD tree" --domain lucene
+  → same query + domain:"lucene" filter
 ```
 
 ### In memory
@@ -199,9 +199,9 @@ Given a wikilink target `t` found in note `source`:
    - If not → unresolved (do not fall back).
 
 2. **Bare name target** — `t` has no `/` (e.g. `codecs`):
-   - Try `{source_topic}/{t}.md` (same-topic relative lookup).
+   - Try `{source_domain}/{t}.md` (same-domain relative lookup).
    - If exists → resolved. Done.
-   - Try all topics: find any note whose stem matches `t`.
+   - Try all domains: find any note whose stem matches `t`.
    - If exactly one match → resolved. Done.
    - If multiple matches → ambiguous → unresolved (log a warning during `kb index`).
    - If no match → unresolved.
@@ -227,7 +227,7 @@ immediately to feed the three structures above and is not saved to disk.
 ```rust
 pub struct ParsedNote {
     pub path: PathBuf,            // vault-relative
-    pub topic: Option<String>,    // folder name, or None for root notes
+    pub domain: Option<String>,    // folder name, or None for root notes
     pub title: String,            // first # heading, or filename stem
     pub tags: Vec<String>,        // merged frontmatter + inline, normalized
     pub headings: Vec<Heading>,   // all headings with level + text
@@ -287,7 +287,7 @@ kb --vault work index # index a named vault
 
 1. Resolve vault (KB_VAULT → --vault name → config default).
 2. Create `~/.kb/vaults/<name>/` if it does not exist.
-3. Walk all notes (same rules as `kb notes` — all topics, all `.md` files).
+3. Walk all notes (same rules as `kb notes` — all domains, all `.md` files).
 4. For each note: parse → feed parser output to Tantivy writer, tags accumulator, links accumulator.
 5. Commit Tantivy index.
 6. Write `tags.json` and `links.json` atomically.

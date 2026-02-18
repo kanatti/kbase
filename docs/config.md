@@ -63,14 +63,14 @@ No other config keys for now. Future options (editor, pager, etc.) will go here.
 ## First-Time Setup
 
 ```bash
-$ kb topics
+$ kb domains
 Error: no vaults configured. Run `kb vault add <name> <path>` to get started.
 
 $ kb vault add personal ~/Documents/kanatti-notes
 Added vault "personal" → ~/Documents/kanatti-notes
 Set as default.
 
-$ kb topics
+$ kb domains
 ...
 ```
 

@@ -6,8 +6,8 @@ Incremental steps — each leaves the tool in a working, useful state.
 `kb config` and `kb config set vault <path>`.  
 Foundation for everything. Nothing else works without it.
 
-## Step 2: Topics + Ls
-`kb topics` and `kb ls <topic>`.  
+## Step 2: Domains + Ls
+`kb domains` and `kb ls <domain>`.  
 Pure filesystem, no parsing. First real navigation.
 
 ## Step 3: Note Resolution + Read
@@ -20,7 +20,7 @@ Needs basic heading parser on a single file. First use of parsing.
 
 ## Step 5: Search
 `kb search`.  
-Ripgrep wrapper with topic scoping. Most useful command day-to-day.
+Ripgrep wrapper with domain scoping. Most useful command day-to-day.
 
 ## Step 6: Tasks
 `kb tasks` and `kb task`.  
@@ -62,7 +62,7 @@ Multi-vault support added before the index work begins.
 | Step | What | Status |
 |------|------|--------|
 | 1 | `kb config`, `kb config set vault` | ✅ |
-| 2 | `kb topics`, `kb notes`, `--sort`, `--topic`, `--files` | ✅ |
+| 2 | `kb domains`, `kb notes`, `--sort`, `--domain`, `--files` | ✅ |
 | 3 | `kb read <path>`, `kb read --outline` | ✅ |
 
 ### Next
@@ -89,8 +89,8 @@ See `docs/parsing.md`.
 **Step 6 — Index store (`src/index_store.rs`)**  
 Tantivy schema + build + query. Tags and links as JSON sidecars.  
 Per-vault index at `~/.kb/vaults/<name>/`.  
-Wikilink resolution: path-style (`topic/note`) tried directly; bare names
-tried same-topic first, then global scan; ambiguous → unresolved.  
+Wikilink resolution: path-style (`domain/note`) tried directly; bare names
+tried same-domain first, then global scan; ambiguous → unresolved.  
 See `docs/index.md`.
 
 **Step 7 — `kb index` command**  
@@ -100,7 +100,7 @@ Output: note count + unresolved wikilink count.
 
 **Step 8 — `kb notes --term`**  
 Query Tantivy index. Error if index missing ("run `kb index` first").  
-Scoped by `--topic` when provided.  
+Scoped by `--domain` when provided.  
 Results ranked by BM25, displayed same as `kb notes`.
 
 **Step 9 — Link graph commands**  

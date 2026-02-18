@@ -11,7 +11,7 @@ From each `.md` file:
 | Element | Example |
 |---|---|
 | Headings | `# Title`, `## Section` |
-| Wikilinks | `[[note]]`, `[[topic/note]]`, `[[note\|alias]]`, `[[note#section]]` |
+| Wikilinks | `[[note]]`, `[[domain/note]]`, `[[note\|alias]]`, `[[note#section]]` |
 | Tags | `#deep-dive`, `#wip` |
 | Tasks | `- [ ] todo`, `- [x] done`, `- [-] cancelled` |
 
@@ -29,7 +29,7 @@ Current approach. Two tools covering different concerns:
 **Regex** for Obsidian-specific syntax that pulldown-cmark doesn't understand:
 
 ```rust
-// Wikilinks: [[note]], [[topic/note]], [[note|alias]], [[note#section]]
+// Wikilinks: [[note]], [[domain/note]], [[note|alias]], [[note#section]]
 let wikilink = Regex::new(r"\[\[([^\]|#]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]");
 
 // Tags: #tag (must not be start of line, to avoid confusing with headings)

@@ -37,13 +37,13 @@ let mut schema_builder = Schema::builder();
 let path  = schema_builder.add_text_field("path",  STORED);         // retrieve but don't search
 let title = schema_builder.add_text_field("title", TEXT | STORED);  // search + retrieve, boosted
 let body  = schema_builder.add_text_field("body",  TEXT);           // search only, no retrieval
-let topic = schema_builder.add_text_field("topic", STRING | STORED); // exact match (no tokenize)
+let domain = schema_builder.add_text_field("domain", STRING | STORED); // exact match (no tokenize)
 let schema = schema_builder.build();
 ```
 
 Field options:
 - `TEXT` — tokenized + indexed (full-text searchable)
-- `STRING` — indexed as single token (exact match, good for topic/path)
+- `STRING` — indexed as single token (exact match, good for domain/path)
 - `STORED` — saved in doc store (retrievable after search)
 - `FAST` — column-oriented storage for sorting/aggregation (doc values)
 
@@ -70,7 +70,7 @@ let mut writer: IndexWriter = index.writer(50_000_000)?;  // 50MB buffer
 
 writer.add_document(doc!(
     path  => "lucene/search-flow.md",
-    topic => "lucene",
+    domain => "lucene",
     title => "Search Flow Deep Dive",
     body  => "How TermQuery flows through IndexSearcher...",
 ))?;
@@ -121,7 +121,7 @@ For `kb notes --term` (Phase 2). See `docs/search.md` for full design.
 ```rust
 let mut schema_builder = Schema::builder();
 let path  = schema_builder.add_text_field("path",  STRING | STORED);
-let topic = schema_builder.add_text_field("topic", STRING | STORED);
+let domain = schema_builder.add_text_field("domain", STRING | STORED);
 let title = schema_builder.add_text_field("title", TEXT | STORED);   // boosted in queries
 let body  = schema_builder.add_text_field("body",  TEXT);            // not stored, saves space
 ```
@@ -168,6 +168,6 @@ tantivy = "0.22"
 - `IndexWriter` must be a singleton — only one writer at a time per index
 - `Searcher` is cheap to acquire — create one per query, not per process
 - Don't `STORE` the body field if you only need it for search (saves significant space)
-- Use `STRING` (not `TEXT`) for path and topic — you want exact match, not tokenization
+- Use `STRING` (not `TEXT`) for path and domain — you want exact match, not tokenization
 - `writer.commit()` is blocking — call after batch, not per document
 - For incremental updates: delete old doc by path term, add new doc, commit

@@ -24,18 +24,18 @@ enum Command {
         action: Option<ConfigAction>,
     },
 
-    /// List all topics with note counts
-    Topics {
+    /// List all domains with note counts
+    Domains {
         /// Sort by: name (default) or count
         #[arg(long, default_value = "name")]
         sort: String,
     },
 
-    /// List notes (all, or filtered by topic or search term)
+    /// List notes (all, or filtered by domain or search term)
     Notes {
-        /// Show only notes in this topic
+        /// Show only notes in this domain
         #[arg(long)]
-        topic: Option<String>,
+        domain: Option<String>,
 
         /// Filter by name/title match (not yet implemented)
         #[arg(long)]
@@ -79,28 +79,28 @@ fn run() -> Result<()> {
             Some(ConfigAction::Set { key, value }) => config::set(&key, &value)?,
         },
 
-        Command::Topics { sort } => {
+        Command::Domains { sort } => {
             let vault = open_vault(cli.vault.as_deref())?;
-            let mut topics = vault.topics()?;
+            let mut domains = vault.domains()?;
 
             if sort == "count" {
-                topics.sort_by(|a, b| b.note_count.cmp(&a.note_count));
+                domains.sort_by(|a, b| b.note_count.cmp(&a.note_count));
             }
 
-            if topics.is_empty() {
-                println!("No topics found in vault.");
+            if domains.is_empty() {
+                println!("No domains found in vault.");
                 return Ok(());
             }
 
-            let max_name = topics.iter().map(|t| t.name.len()).max().unwrap_or(0);
-            for t in &topics {
-                let n = t.note_count;
+            let max_name = domains.iter().map(|d| d.name.len()).max().unwrap_or(0);
+            for d in &domains {
+                let n = d.note_count;
                 let label = if n == 1 { "note" } else { "notes" };
-                println!("{:<width$}  {} {}", t.name, n, label, width = max_name);
+                println!("{:<width$}  {} {}", d.name, n, label, width = max_name);
             }
         }
 
-        Command::Notes { topic, term, files } => {
+        Command::Notes { domain, term, files } => {
             if term.is_some() {
                 eprintln!("--term search is not yet implemented");
                 std::process::exit(1);
@@ -108,8 +108,8 @@ fn run() -> Result<()> {
 
             let vault = open_vault(cli.vault.as_deref())?;
 
-            let notes = match &topic {
-                Some(t) => vault.notes_in_topic(t)?,
+            let notes = match &domain {
+                Some(d) => vault.notes_in_domain(d)?,
                 None => vault.all_notes()?,
             };
 

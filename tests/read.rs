@@ -100,15 +100,15 @@ fn read_missing_note_errors() {
 }
 
 #[test]
-fn read_wrong_topic_errors() {
+fn read_wrong_domain_errors() {
     let tmp = setup_vault();
     let output = kb(&tmp)
-        .args(["read", "no-such-topic/note.md"])
+        .args(["read", "no-such-domain/note.md"])
         .output()
         .unwrap();
 
     assert!(!output.status.success());
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("note not found: no-such-topic/note.md"));
+    assert!(stderr.contains("note not found: no-such-domain/note.md"));
 }

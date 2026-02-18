@@ -4,7 +4,7 @@ use common::{kb, setup_vault};
 use predicates::str::contains;
 
 #[test]
-fn notes_lists_all_notes_without_topic() {
+fn notes_lists_all_notes_without_domain() {
     let tmp = setup_vault();
 
     kb(&tmp)
@@ -17,11 +17,11 @@ fn notes_lists_all_notes_without_topic() {
 }
 
 #[test]
-fn notes_topic_filter_lists_notes_in_topic() {
+fn notes_domain_filter_lists_notes_in_domain() {
     let tmp = setup_vault();
 
     kb(&tmp)
-        .args(["notes", "--topic", "lucene"])
+        .args(["notes", "--domain", "lucene"])
         .assert()
         .success()
         .stdout(contains("01-home.md"))
@@ -30,11 +30,11 @@ fn notes_topic_filter_lists_notes_in_topic() {
 }
 
 #[test]
-fn notes_topic_filter_shows_titles() {
+fn notes_domain_filter_shows_titles() {
     let tmp = setup_vault();
 
     kb(&tmp)
-        .args(["notes", "--topic", "lucene"])
+        .args(["notes", "--domain", "lucene"])
         .assert()
         .success()
         .stdout(contains("Lucene"))
@@ -42,11 +42,11 @@ fn notes_topic_filter_shows_titles() {
 }
 
 #[test]
-fn notes_topic_filter_falls_back_to_stem_when_no_heading() {
+fn notes_domain_filter_falls_back_to_stem_when_no_heading() {
     let tmp = setup_vault();
 
     kb(&tmp)
-        .args(["notes", "--topic", "lucene"])
+        .args(["notes", "--domain", "lucene"])
         .assert()
         .success()
         .stdout(contains("codecs"));
@@ -57,7 +57,7 @@ fn notes_files_flag_hides_titles() {
     let tmp = setup_vault();
 
     let out = kb(&tmp)
-        .args(["notes", "--topic", "lucene", "--files"])
+        .args(["notes", "--domain", "lucene", "--files"])
         .assert()
         .success();
     let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
@@ -70,11 +70,11 @@ fn notes_files_flag_hides_titles() {
 }
 
 #[test]
-fn notes_unknown_topic_gives_error() {
+fn notes_unknown_domain_gives_error() {
     let tmp = setup_vault();
 
     kb(&tmp)
-        .args(["notes", "--topic", "nonexistent"])
+        .args(["notes", "--domain", "nonexistent"])
         .assert()
         .failure()
         .stderr(contains("Error"));
