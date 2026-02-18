@@ -8,8 +8,7 @@ use tempfile::TempDir;
 
 /// Absolute path to the checked-in fixture vault.
 pub fn fixture_vault() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/vault")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/vault")
 }
 
 /// Copy the fixture vault into a fresh TempDir and return it.
@@ -23,24 +22,24 @@ pub fn setup_vault() -> TempDir {
 /// Build a `kb` command with a properly configured vault in the temp directory.
 pub fn kb(tmp: &TempDir) -> Command {
     let mut cmd = cargo_bin_cmd!("kb");
-    
+
     // Set KB_CONFIG_DIR to store config in the temp directory
     cmd.env("KB_CONFIG_DIR", tmp.path());
-    
+
     // Create a proper config file for the vault
     setup_vault_config(tmp);
-    
+
     cmd
 }
 
 /// Set up a config file in the temp directory for the test vault.
 fn setup_vault_config(tmp: &TempDir) {
     use std::fs;
-    
+
     // Create the config directory
     let config_dir = tmp.path().join(".kb");
     fs::create_dir_all(&config_dir).unwrap();
-    
+
     // Create config.toml with proper vault configuration format
     let vault_path = tmp.path().to_string_lossy().replace("\\", "\\\\"); // Handle Windows paths
     let config_content = format!(
@@ -51,7 +50,7 @@ path = "{}"
 "#,
         vault_path
     );
-    
+
     let config_path = config_dir.join("config.toml");
     fs::write(&config_path, config_content).unwrap();
 }

@@ -58,7 +58,11 @@ impl Vault {
 
             let note_count = count_md_files(&path).unwrap_or(0);
 
-            domains.push(Domain { name, path, note_count });
+            domains.push(Domain {
+                name,
+                path,
+                note_count,
+            });
         }
 
         // Default: alphabetical
@@ -124,12 +128,13 @@ impl Vault {
 
             let title = read_first_heading(&path).unwrap_or(stem);
 
-            let rel_path = path
-                .strip_prefix(&self.root)
-                .unwrap_or(&path)
-                .to_path_buf();
+            let rel_path = path.strip_prefix(&self.root).unwrap_or(&path).to_path_buf();
 
-            notes.push(Note { path: rel_path, filename, title });
+            notes.push(Note {
+                path: rel_path,
+                filename,
+                title,
+            });
         }
 
         notes.sort_by(|a, b| a.filename.cmp(&b.filename));

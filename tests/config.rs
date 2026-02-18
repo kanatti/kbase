@@ -22,7 +22,7 @@ fn config_show_no_config() {
 #[test]
 fn add_vault() {
     let tmp = TempDir::new().unwrap();
-    
+
     kb(&tmp)
         .args(["add", "test-vault", tmp.path().to_str().unwrap()])
         .assert()
@@ -33,7 +33,7 @@ fn add_vault() {
 #[test]
 fn config_show_after_add() {
     let tmp = TempDir::new().unwrap();
-    
+
     // Add a vault first
     kb(&tmp)
         .args(["add", "test-vault", tmp.path().to_str().unwrap()])
@@ -52,7 +52,7 @@ fn config_show_after_add() {
 #[test]
 fn use_vault_not_found() {
     let tmp = TempDir::new().unwrap();
-    
+
     // Try to use vault that doesn't exist
     kb(&tmp)
         .args(["use", "nonexistent"])
@@ -64,13 +64,13 @@ fn use_vault_not_found() {
 #[test]
 fn add_and_use_vault() {
     let tmp = TempDir::new().unwrap();
-    
+
     // Add two vaults
     kb(&tmp)
         .args(["add", "vault1", tmp.path().to_str().unwrap()])
         .assert()
         .success();
-        
+
     kb(&tmp)
         .args(["add", "vault2", tmp.path().to_str().unwrap()])
         .assert()
@@ -87,7 +87,7 @@ fn add_and_use_vault() {
 #[test]
 fn list_vaults() {
     let tmp = TempDir::new().unwrap();
-    
+
     // Add a vault
     kb(&tmp)
         .args(["add", "test-vault", tmp.path().to_str().unwrap()])
@@ -106,23 +106,20 @@ fn list_vaults() {
 #[test]
 fn kb_vault_env_var_override() {
     let tmp = TempDir::new().unwrap();
-    
+
     // Add two vaults
     kb(&tmp)
         .args(["add", "vault1", tmp.path().to_str().unwrap()])
         .assert()
         .success();
-        
+
     kb(&tmp)
         .args(["add", "vault2", tmp.path().to_str().unwrap()])
         .assert()
         .success();
 
     // Use vault1 as active
-    kb(&tmp)
-        .args(["use", "vault1"])
-        .assert()
-        .success();
+    kb(&tmp).args(["use", "vault1"]).assert().success();
 
     // Override with KB_VAULT env var to use vault2 temporarily
     kb(&tmp)
@@ -135,7 +132,7 @@ fn kb_vault_env_var_override() {
 #[test]
 fn kb_vault_env_var_invalid_vault() {
     let tmp = TempDir::new().unwrap();
-    
+
     // Add a vault
     kb(&tmp)
         .args(["add", "test-vault", tmp.path().to_str().unwrap()])

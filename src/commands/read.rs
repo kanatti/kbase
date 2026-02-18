@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::vault::Vault;
+use anyhow::Result;
 
 pub fn handle_read(vault: &Vault, path: String, outline: bool) -> Result<()> {
     let content = vault.read_note(&path)?;
@@ -9,7 +9,7 @@ pub fn handle_read(vault: &Vault, path: String, outline: bool) -> Result<()> {
     } else {
         print!("{}", content);
     }
-    
+
     Ok(())
 }
 

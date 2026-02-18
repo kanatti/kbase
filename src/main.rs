@@ -26,15 +26,10 @@ pub enum Command {
     Config,
 
     /// Add a new vault
-    Add { 
-        name: String,
-        path: String,
-    },
+    Add { name: String, path: String },
 
     /// Set the active vault
-    Use { 
-        name: String,
-    },
+    Use { name: String },
 
     /// List all configured vaults
     Vaults,

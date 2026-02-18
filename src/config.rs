@@ -1,6 +1,6 @@
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::collections::HashMap;
 
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
@@ -33,7 +33,7 @@ impl Config {
 
         Ok(config)
     }
-    
+
     pub fn get_active_vault(&self) -> Result<(String, VaultConfig)> {
         match self.vaults.get(&self.active_vault) {
             Some(vault_config) => Ok((self.active_vault.clone(), vault_config.clone())),
@@ -66,7 +66,11 @@ pub fn show() -> Result<()> {
     println!("active_vault = {}", config.active_vault);
     println!("\nVaults:");
     for (name, vault_config) in &config.vaults {
-        let marker = if name == &config.active_vault { " (active)" } else { "" };
+        let marker = if name == &config.active_vault {
+            " (active)"
+        } else {
+            ""
+        };
         println!("  {} = {}{}", name, vault_config.path.display(), marker);
     }
 
@@ -75,62 +79,74 @@ pub fn show() -> Result<()> {
 
 pub fn add_vault(name: &str, path: &str) -> Result<()> {
     let vault_path = resolve_path(path)?;
-    
+
     // Load existing config or create new one
     let mut config = Config::load().unwrap_or_else(|_| Config {
         active_vault: name.to_string(),
         vaults: HashMap::new(),
     });
-    
+
     // Add the vault
-    config.vaults.insert(name.to_string(), VaultConfig { path: vault_path });
-    
+    config
+        .vaults
+        .insert(name.to_string(), VaultConfig { path: vault_path });
+
     // If this is the first vault, make it active
     if config.vaults.len() == 1 {
         config.active_vault = name.to_string();
     }
-    
+
     config.save()?;
     println!("Added vault '{}' to config", name);
     if config.active_vault == name {
         println!("Set as active vault");
     }
-    
+
     Ok(())
 }
 
 pub fn set_active_vault(name: &str) -> Result<()> {
     let mut config = Config::load()?;
-    
+
     if !config.vaults.contains_key(name) {
         let available_vaults: Vec<&String> = config.vaults.keys().collect();
-        bail!("Vault '{}' not found. Available vaults: {}", 
-              name, 
-              available_vaults.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", "));
+        bail!(
+            "Vault '{}' not found. Available vaults: {}",
+            name,
+            available_vaults
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
     }
-    
+
     config.active_vault = name.to_string();
     config.save()?;
     println!("Set '{}' as active vault", name);
-    
+
     Ok(())
 }
 
 pub fn list_vaults() -> Result<()> {
     let config = Config::load()?;
-    
+
     if config.vaults.is_empty() {
         println!("No vaults configured.");
         println!("Run `kb config add <name> <path>` to add a vault.");
         return Ok(());
     }
-    
+
     println!("Configured vaults:");
     for (name, vault_config) in &config.vaults {
-        let marker = if name == &config.active_vault { " (active)" } else { "" };
+        let marker = if name == &config.active_vault {
+            " (active)"
+        } else {
+            ""
+        };
         println!("  {}{} -> {}", name, marker, vault_config.path.display());
     }
-    
+
     Ok(())
 }
 

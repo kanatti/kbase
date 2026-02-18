@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::vault::Vault;
+use anyhow::Result;
 
 pub fn handle_domains(vault: &Vault, sort: String) -> Result<()> {
     let mut domains = vault.domains()?;
@@ -19,6 +19,6 @@ pub fn handle_domains(vault: &Vault, sort: String) -> Result<()> {
         let label = if n == 1 { "note" } else { "notes" };
         println!("{:<width$}  {} {}", d.name, n, label, width = max_name);
     }
-    
+
     Ok(())
 }

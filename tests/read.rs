@@ -24,10 +24,7 @@ fn read_note_outputs_raw_content() {
 #[test]
 fn read_root_level_note() {
     let tmp = setup_vault();
-    let output = kb(&tmp)
-        .args(["read", "01-home.md"])
-        .output()
-        .unwrap();
+    let output = kb(&tmp).args(["read", "01-home.md"]).output().unwrap();
 
     assert!(output.status.success(), "expected exit 0");
 

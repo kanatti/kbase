@@ -112,10 +112,7 @@ fn notes_tag_filter_shows_notes_with_tag() {
     let tmp = setup_vault();
 
     // Build the index first
-    kb(&tmp)
-        .arg("index")
-        .assert()
-        .success();
+    kb(&tmp).arg("index").assert().success();
 
     // Test --tag filtering
     kb(&tmp)
@@ -131,10 +128,7 @@ fn notes_tag_filter_with_files_flag() {
     let tmp = setup_vault();
 
     // Build the index first
-    kb(&tmp)
-        .arg("index")
-        .assert()
-        .success();
+    kb(&tmp).arg("index").assert().success();
 
     // Test --tag with --files
     let out = kb(&tmp)
@@ -145,7 +139,10 @@ fn notes_tag_filter_with_files_flag() {
 
     assert!(stdout.contains(".md"));
     // Should not contain titles when --files is used
-    assert!(!stdout.contains("Search Flow"), "titles should be hidden with --files");
+    assert!(
+        !stdout.contains("Search Flow"),
+        "titles should be hidden with --files"
+    );
 }
 
 #[test]
@@ -153,10 +150,7 @@ fn notes_tag_and_domain_combination() {
     let tmp = setup_vault();
 
     // Build the index first
-    kb(&tmp)
-        .arg("index")
-        .assert()
-        .success();
+    kb(&tmp).arg("index").assert().success();
 
     // Test --tag with --domain (should show only lucene notes with deep-dive tag)
     let out = kb(&tmp)
@@ -164,7 +158,7 @@ fn notes_tag_and_domain_combination() {
         .assert()
         .success();
     let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
-    
+
     assert!(stdout.contains("search-flow.md"));
     assert!(!stdout.contains("esql-analysis.md")); // This is in elasticsearch domain
 }
@@ -174,10 +168,7 @@ fn notes_tag_not_found() {
     let tmp = setup_vault();
 
     // Build the index first
-    kb(&tmp)
-        .arg("index")
-        .assert()
-        .success();
+    kb(&tmp).arg("index").assert().success();
 
     // Test nonexistent tag
     kb(&tmp)
@@ -192,15 +183,14 @@ fn notes_tag_and_domain_no_results() {
     let tmp = setup_vault();
 
     // Build the index first
-    kb(&tmp)
-        .arg("index")
-        .assert()
-        .success();
+    kb(&tmp).arg("index").assert().success();
 
     // Test combination that should yield no results
     kb(&tmp)
         .args(["notes", "--tag", "rust", "--domain", "elasticsearch"])
         .assert()
         .success()
-        .stdout(contains("No notes in domain 'elasticsearch' with tag 'rust'"));
+        .stdout(contains(
+            "No notes in domain 'elasticsearch' with tag 'rust'",
+        ));
 }

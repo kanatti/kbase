@@ -1,8 +1,14 @@
-use anyhow::Result;
-use crate::vault::Vault;
 use crate::tags::TagIndex;
+use crate::vault::Vault;
+use anyhow::Result;
 
-pub fn handle_notes(vault: &Vault, domain: Option<String>, term: Option<String>, tag: Option<String>, files: bool) -> Result<()> {
+pub fn handle_notes(
+    vault: &Vault,
+    domain: Option<String>,
+    term: Option<String>,
+    tag: Option<String>,
+    files: bool,
+) -> Result<()> {
     if term.is_some() {
         eprintln!("--term search is not yet implemented");
         std::process::exit(1);
@@ -49,29 +55,33 @@ pub fn handle_notes(vault: &Vault, domain: Option<String>, term: Option<String>,
             );
         }
     }
-    
+
     Ok(())
 }
 
 /// Get notes by tag using tag-first filtering approach
-fn get_notes_by_tag(vault: &Vault, tag: &str, domain: Option<&str>) -> Result<Vec<crate::vault::Note>> {
+fn get_notes_by_tag(
+    vault: &Vault,
+    tag: &str,
+    domain: Option<&str>,
+) -> Result<Vec<crate::vault::Note>> {
     // Load tag index
     let index_dir = get_index_dir(vault)?;
     let tags_json_path = index_dir.join("tags.json");
-    
+
     if !tags_json_path.exists() {
         eprintln!("No tag index found. Run `kb index` to build it first.");
         std::process::exit(1);
     }
-    
+
     let tag_index = TagIndex::load_from_json(&tags_json_path)?;
-    
+
     // Get paths for the tag
     let tagged_paths = tag_index.notes_with_tag(tag);
     if tagged_paths.is_empty() {
         return Ok(Vec::new()); // No notes with this tag
     }
-    
+
     // Convert paths to Notes, filtering by domain if specified
     let mut notes = Vec::new();
     for path_str in tagged_paths {
@@ -81,16 +91,16 @@ fn get_notes_by_tag(vault: &Vault, tag: &str, domain: Option<&str>) -> Result<Ve
                 continue;
             }
         }
-        
+
         // Convert path to Note
         if let Ok(note) = path_to_note(vault, &path_str) {
             notes.push(note);
         }
     }
-    
+
     // Sort by filename for consistent output
     notes.sort_by(|a, b| a.filename.cmp(&b.filename));
-    
+
     Ok(notes)
 }
 
@@ -108,27 +118,27 @@ fn path_in_domain(path: &str, domain: &str) -> bool {
 /// Convert a vault-relative path string to a Note struct
 fn path_to_note(vault: &Vault, path_str: &str) -> Result<crate::vault::Note> {
     use std::path::PathBuf;
-    
+
     let full_path = vault.root.join(path_str);
-    
+
     if !full_path.exists() {
         anyhow::bail!("Note file not found: {}", path_str);
     }
-    
+
     let filename = full_path
         .file_name()
         .and_then(|n| n.to_str())
         .unwrap_or(path_str)
         .to_string();
-    
+
     let stem = full_path
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or(&filename)
         .to_string();
-    
+
     let title = read_first_heading(&full_path).unwrap_or(stem);
-    
+
     Ok(crate::vault::Note {
         path: PathBuf::from(path_str),
         filename,
@@ -155,9 +165,9 @@ fn get_index_dir(vault: &Vault) -> Result<std::path::PathBuf> {
     let kb_dir = if let Ok(dir) = std::env::var("KB_CONFIG_DIR") {
         std::path::PathBuf::from(dir)
     } else {
-        dirs::home_dir()
-            .ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?
-    }.join(".kb");
-    
+        dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?
+    }
+    .join(".kb");
+
     Ok(kb_dir.join("indexes").join(&vault.name))
 }

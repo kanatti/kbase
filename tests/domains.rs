@@ -25,14 +25,26 @@ fn domains_shows_note_counts() {
     let out = kb(&tmp).arg("domains").assert().success();
     let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
 
-    let es_line = stdout.lines().find(|l| l.contains("elasticsearch")).unwrap();
-    assert!(es_line.contains('2'), "expected 2 notes for elasticsearch, got: {es_line}");
+    let es_line = stdout
+        .lines()
+        .find(|l| l.contains("elasticsearch"))
+        .unwrap();
+    assert!(
+        es_line.contains('2'),
+        "expected 2 notes for elasticsearch, got: {es_line}"
+    );
 
     let lucene_line = stdout.lines().find(|l| l.contains("lucene")).unwrap();
-    assert!(lucene_line.contains('3'), "expected 3 notes for lucene, got: {lucene_line}");
+    assert!(
+        lucene_line.contains('3'),
+        "expected 3 notes for lucene, got: {lucene_line}"
+    );
 
     let rust_line = stdout.lines().find(|l| l.contains("rust")).unwrap();
-    assert!(rust_line.contains('1'), "expected 1 note for rust, got: {rust_line}");
+    assert!(
+        rust_line.contains('1'),
+        "expected 1 note for rust, got: {rust_line}"
+    );
 }
 
 #[test]
@@ -79,8 +91,14 @@ fn domains_sorted_by_count() {
     let es_pos = stdout.find("elasticsearch").unwrap();
     let rust_pos = stdout.find("rust").unwrap();
 
-    assert!(lucene_pos < es_pos, "lucene (3) should come before elasticsearch (2)");
-    assert!(es_pos < rust_pos, "elasticsearch (2) should come before rust (1)");
+    assert!(
+        lucene_pos < es_pos,
+        "lucene (3) should come before elasticsearch (2)"
+    );
+    assert!(
+        es_pos < rust_pos,
+        "elasticsearch (2) should come before rust (1)"
+    );
 }
 
 #[test]
@@ -90,5 +108,8 @@ fn domains_no_vault_shows_error() {
     cmd.env("KB_CONFIG_DIR", tmp.path());
     cmd.env_remove("KB_VAULT");
 
-    cmd.arg("domains").assert().failure().stderr(contains("Error"));
+    cmd.arg("domains")
+        .assert()
+        .failure()
+        .stderr(contains("Error"));
 }
