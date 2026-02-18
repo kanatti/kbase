@@ -59,9 +59,23 @@ pub fn handle_command(command: Command) -> Result<()> {
     }
 }
 
-/// Load vault from config file.
+/// Load vault from config file, with optional KB_VAULT override.
 fn open_vault() -> Result<Vault> {
     let config = crate::config::Config::load()?;
+    
+    // Check KB_VAULT environment variable first (vault name)
+    if let Ok(vault_name) = std::env::var("KB_VAULT") {
+        if let Some(vault_config) = config.vaults.get(&vault_name) {
+            return Vault::open(vault_config.path.clone(), vault_name);
+        } else {
+            let available: Vec<_> = config.vaults.keys().map(|s| s.as_str()).collect();
+            anyhow::bail!("Vault '{}' not found in config. Available vaults: {}", 
+                         vault_name, 
+                         available.join(", "));
+        }
+    }
+    
+    // Fall back to active_vault from config
     let (vault_name, vault_config) = config.get_active_vault()?;
     Vault::open(vault_config.path, vault_name)
 }

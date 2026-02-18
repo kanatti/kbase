@@ -14,7 +14,7 @@ pub enum IndexType {
 }
 
 #[derive(Parser)]
-#[command(name = "kb", about = "Knowledge base CLI for markdown vaults", version)]
+#[command(name = "kb", about = "Knowledge Base CLI for markdown vaults", version)]
 struct Cli {
     #[command(subcommand)]
     command: Command,

@@ -102,3 +102,52 @@ fn list_vaults() {
         .stdout(contains("test-vault"))
         .stdout(contains("(active)"));
 }
+
+#[test]
+fn kb_vault_env_var_override() {
+    let tmp = TempDir::new().unwrap();
+    
+    // Add two vaults
+    kb(&tmp)
+        .args(["add", "vault1", tmp.path().to_str().unwrap()])
+        .assert()
+        .success();
+        
+    kb(&tmp)
+        .args(["add", "vault2", tmp.path().to_str().unwrap()])
+        .assert()
+        .success();
+
+    // Use vault1 as active
+    kb(&tmp)
+        .args(["use", "vault1"])
+        .assert()
+        .success();
+
+    // Override with KB_VAULT env var to use vault2 temporarily
+    kb(&tmp)
+        .env("KB_VAULT", "vault2")
+        .args(["domains"])
+        .assert()
+        .success();
+}
+
+#[test]
+fn kb_vault_env_var_invalid_vault() {
+    let tmp = TempDir::new().unwrap();
+    
+    // Add a vault
+    kb(&tmp)
+        .args(["add", "test-vault", tmp.path().to_str().unwrap()])
+        .assert()
+        .success();
+
+    // Try to use nonexistent vault via KB_VAULT
+    kb(&tmp)
+        .env("KB_VAULT", "nonexistent")
+        .args(["domains"])
+        .assert()
+        .failure()
+        .stderr(contains("Vault 'nonexistent' not found in config"))
+        .stderr(contains("Available vaults: test-vault"));
+}

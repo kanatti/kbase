@@ -41,6 +41,22 @@ kb read rust/basics.md      # View note
 kb index                    # Rebuild index
 ```
 
+## Temporary Vault Switching
+
+Use `KB_VAULT` to temporarily override the active vault:
+
+```bash
+# Normal usage (uses active vault)
+kb notes --tag bug
+
+# Temporary switch by vault name  
+KB_VAULT=work kb notes --tag bug
+KB_VAULT=personal kb index
+
+# Still permanent switching
+kb use work                 # Change active vault
+```
+
 ## Structure
 
 kb works with existing folder structures:
