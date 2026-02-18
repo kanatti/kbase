@@ -20,36 +20,85 @@ fn config_show_no_config() {
 }
 
 #[test]
-fn config_set_vault() {
+fn add_vault() {
     let tmp = TempDir::new().unwrap();
+    
     kb(&tmp)
-        .args(["config", "set", "vault", tmp.path().to_str().unwrap()])
+        .args(["add", "test-vault", tmp.path().to_str().unwrap()])
         .assert()
         .success()
-        .stdout(contains("Config written to"));
+        .stdout(contains("Added vault 'test-vault' to config"));
 }
 
 #[test]
-fn config_show_after_set() {
+fn config_show_after_add() {
     let tmp = TempDir::new().unwrap();
+    
+    // Add a vault first
     kb(&tmp)
-        .args(["config", "set", "vault", tmp.path().to_str().unwrap()])
+        .args(["add", "test-vault", tmp.path().to_str().unwrap()])
         .assert()
         .success();
 
+    // Show config
     kb(&tmp)
         .arg("config")
         .assert()
         .success()
-        .stdout(contains("vault"));
+        .stdout(contains("active_vault = test-vault"))
+        .stdout(contains("test-vault"));
 }
 
 #[test]
-fn config_set_unknown_key() {
+fn use_vault_not_found() {
     let tmp = TempDir::new().unwrap();
+    
+    // Try to use vault that doesn't exist
     kb(&tmp)
-        .args(["config", "set", "unknown", "value"])
+        .args(["use", "nonexistent"])
         .assert()
         .failure()
-        .stderr(contains("Unknown config key"));
+        .stderr(contains("No config found"));
+}
+
+#[test]
+fn add_and_use_vault() {
+    let tmp = TempDir::new().unwrap();
+    
+    // Add two vaults
+    kb(&tmp)
+        .args(["add", "vault1", tmp.path().to_str().unwrap()])
+        .assert()
+        .success();
+        
+    kb(&tmp)
+        .args(["add", "vault2", tmp.path().to_str().unwrap()])
+        .assert()
+        .success();
+
+    // Switch active vault
+    kb(&tmp)
+        .args(["use", "vault2"])
+        .assert()
+        .success()
+        .stdout(contains("Set 'vault2' as active vault"));
+}
+
+#[test]
+fn list_vaults() {
+    let tmp = TempDir::new().unwrap();
+    
+    // Add a vault
+    kb(&tmp)
+        .args(["add", "test-vault", tmp.path().to_str().unwrap()])
+        .assert()
+        .success();
+
+    // List vaults
+    kb(&tmp)
+        .args(["vaults"])
+        .assert()
+        .success()
+        .stdout(contains("test-vault"))
+        .stdout(contains("(active)"));
 }

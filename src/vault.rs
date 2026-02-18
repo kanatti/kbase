@@ -5,6 +5,7 @@ use anyhow::{Context, Result, bail};
 
 pub struct Vault {
     pub root: PathBuf,
+    pub name: String,
 }
 
 pub struct Domain {
@@ -23,14 +24,14 @@ pub struct Note {
 }
 
 impl Vault {
-    pub fn open(root: PathBuf) -> Result<Self> {
+    pub fn open(root: PathBuf, name: String) -> Result<Self> {
         if !root.exists() {
             bail!("Vault path does not exist: {}", root.display());
         }
         if !root.is_dir() {
             bail!("Vault path is not a directory: {}", root.display());
         }
-        Ok(Vault { root })
+        Ok(Vault { root, name })
     }
 
     /// List all domain folders (top-level dirs, excluding those starting with `_` or `.`).

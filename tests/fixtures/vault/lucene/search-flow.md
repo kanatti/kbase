@@ -2,9 +2,11 @@
 
 How TermQuery flows through IndexSearcher, Weight, Scorer and into TopDocs.
 
+This is a #deep-dive into #lucene #indexing and #performance optimization.
+
 ## Phase 1: IndexSearcher.search()
 
-Entry point for all searches in Lucene.
+Entry point for all searches in Lucene. This covers #search-internals.
 
 ### Step 1: createWeight()
 
@@ -16,4 +18,4 @@ Scores documents in bulk for a segment.
 
 ## Phase 2: Scoring
 
-Final BM25 scoring and TopDocs collection.
+Final BM25 scoring and TopDocs collection. The #scoring algorithm is #wip.

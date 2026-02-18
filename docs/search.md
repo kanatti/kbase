@@ -1,22 +1,46 @@
-# Search
+# Search & Filtering
 
-How `kb notes --term` finds notes, and the path to Tantivy full-text search.
+How `kb notes` finds notes through different filtering mechanisms.
 
 ---
 
 ## Interface
 
-Search is exposed via `kb notes --term`, not as a separate command:
+All filtering is exposed via `kb notes`, keeping discovery unified:
 
 ```bash
-kb notes --term "search flow"               # search across all domains
-kb notes --domain lucene --term "search"     # scoped to a domain
+kb notes --term "search flow"               # full-text search (future)
+kb notes --domain lucene                    # filter by domain
+kb notes --tag wip                          # filter by tag ✅ IMPLEMENTED
+kb notes --domain lucene --tag deep-dive    # combine filters ✅ IMPLEMENTED
 ```
 
 This keeps discovery unified — `kb notes` is always how you find notes,
-whether you're browsing by domain or searching by term.
+whether you're browsing by domain, filtering by tag, or searching by term.
 
 ---
+
+## Tag filtering ✅ IMPLEMENTED
+
+`kb notes --tag <name>` filters notes that contain the specified hashtag:
+
+```bash
+kb notes --tag rust          # All notes with #rust tag
+kb notes --tag wip           # All notes with #wip tag  
+kb notes --domain rust --tag advanced  # Combine with domain filter
+```
+
+Uses tag-first filtering for efficiency:
+1. Load tag index from `~/.kb/indexes/<vault>/tags.json`
+2. Get paths for the specified tag
+3. Convert paths to Note structs (only for tagged files)
+4. Apply domain filter if specified
+
+Requires `kb index` to build the tag index first.
+
+---
+
+## Full-text search (future)
 
 ## What `--term` matches
 

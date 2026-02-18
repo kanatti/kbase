@@ -1,179 +1,127 @@
 # Vault
 
-`Vault` is the core abstraction in `kb`. It holds the root path and owns the
-in-memory index — a parsed, queryable view of every note in the vault. All
-commands go through `Vault`.
+`Vault` is the core abstraction in `kb`. It represents a knowledge base directory containing markdown files organized into domains.
 
 ---
 
-## In-Memory Structure
-
-Built once on first use via `OnceCell`, cached for the lifetime of the process.
-
-```
-Vault
-├── root: PathBuf
-└── index: OnceCell<Index>
-    ├── domains: Vec<Domain>
-    ├── notes: Vec<Note>
-    ├── link_graph: LinkGraph
-    ├── tag_map: TagMap
-    └── tasks: Vec<Task>
-```
-
-### Domain
-
-Represents a top-level folder in the vault.
+## Structure
 
 ```rust
-struct Domain {
-    name: String,       // "elasticsearch"
-    path: PathBuf,      // /vault/elasticsearch
-    note_count: usize,  // number of .md files inside
+pub struct Vault {
+    pub root: PathBuf,    // vault root directory
+    pub name: String,     // vault name from config
 }
 ```
 
-### Note
+Simple and lightweight — no cached indexes or complex in-memory structures. The vault provides methods to scan and read files on demand.
 
-Represents a single parsed markdown file.
+## Domain
+
+Top-level directories become domains:
 
 ```rust
-struct Note {
-    path: PathBuf,           // relative to vault root: "elasticsearch/esql-analysis.md"
-    title: String,           // first # heading, or filename if none
-    headings: Vec<Heading>,  // all headings in order
-    links: Vec<String>,      // raw wikilink targets: ["esql-parser", "01-home"]
-    tags: Vec<String>,       // inline tags: ["deep-dive", "wip"]
-    tasks: Vec<Task>,        // tasks found in this note
-    modified: SystemTime,    // file mtime, used for incremental rebuild
-}
-
-struct Heading {
-    level: u8,    // 1-6
-    text: String, // heading text without #
-    line: usize,  // line number in file
+pub struct Domain {
+    pub name: String,        // "elasticsearch"
+    pub path: PathBuf,       // /vault/elasticsearch  
+    pub note_count: usize,   // number of .md files inside
 }
 ```
 
-### LinkGraph
+**Domain Rules:**
+- Only directories at vault root
+- Names cannot start with `_` or `.` (excludes `__templates`, `_logs`, etc.)
+- Empty directories are included (with count 0)
 
-Built from all notes' `links` after full vault parse. Resolves raw wikilink
-names to actual note paths.
+## Note
+
+Individual markdown files:
 
 ```rust
-struct LinkGraph {
-    // "elasticsearch/esql-analysis.md" → ["elasticsearch/esql-parser.md", ...]
-    forward: HashMap<PathBuf, Vec<PathBuf>>,
-
-    // "elasticsearch/esql-parser.md" → ["elasticsearch/esql-analysis.md", ...]
-    reverse: HashMap<PathBuf, Vec<PathBuf>>,
-
-    // notes with broken links: "elasticsearch/03-task-board.md" → ["esql-optimizer"]
-    unresolved: HashMap<PathBuf, Vec<String>>,
+pub struct Note {
+    pub path: PathBuf,    // relative to vault: "elasticsearch/esql-analysis.md"
+    pub filename: String, // "esql-analysis.md"
+    pub title: String,    // first # heading, or filename stem if none
 }
 ```
 
-Link resolution: given raw link `[[esql-parser]]`:
-1. Try `{current_domain}/esql-parser.md`
-2. Try `**/esql-parser.md` anywhere in vault (first match)
-3. If neither found → unresolved
+Notes are created on-demand by scanning directories. The title is extracted by reading the first few lines to find a `# Heading`.
 
-### TagMap
+## Operations
+
+### Domain Listing
 
 ```rust
-struct TagMap {
-    // "deep-dive" → ["lucene/search-flow.md", "elasticsearch/esql-analysis.md"]
-    tags: HashMap<String, Vec<PathBuf>>,
+impl Vault {
+    pub fn domains(&self) -> Result<Vec<Domain>> {
+        // Scan vault root for directories
+        // Count .md files in each
+        // Return sorted by name
+    }
 }
 ```
 
-### Task
+### Note Listing
+
+```rust  
+impl Vault {
+    pub fn all_notes(&self) -> Result<Vec<Note>> {
+        // Walk all domains, collect all .md files
+    }
+    
+    pub fn notes_in_domain(&self, domain: &str) -> Result<Vec<Note>> {
+        // Scan single domain directory
+    }
+}
+```
+
+### Note Reading
 
 ```rust
-struct Task {
-    path: PathBuf,       // which note this task lives in
-    line: usize,         // line number, used for `kb task done`
-    status: TaskStatus,  // Todo, Done, Cancelled, Other(char)
-    content: String,     // "Complete esql-analysis documentation"
-}
-
-enum TaskStatus {
-    Todo,        // [ ]
-    Done,        // [x]
-    Cancelled,   // [-]
-    Other(char), // [?] etc.
+impl Vault {
+    pub fn read_note(&self, path: &str) -> Result<String> {
+        // Read file content by vault-relative path
+    }
 }
 ```
 
----
+## Index Storage
 
-## How the Index Is Built
-
-On first access to `vault.index()`:
-
-```
-1. Walk vault root (using `ignore` crate — respects excludes)
-2. For each .md file:
-   a. Read file
-   b. Parse headings (regex: ^#{1,6} text)
-   c. Parse links (regex: \[\[([^\]]+)\]\])
-   d. Parse tags (regex: #[a-zA-Z][a-zA-Z0-9_-]*)
-   e. Parse tasks (regex: - \[(.)\] (.+))
-   f. Build Note struct
-3. Collect all Domains from top-level dirs
-4. Build LinkGraph by resolving all raw links across notes
-5. Build TagMap from all notes' tags
-6. Collect all Tasks from all notes
-```
-
-Full build on 658 files: ~100-150ms. Cached after that.
-
----
-
-## On-Disk Persistence (Phase 2)
-
-Phase 1 builds the index in memory on every run. Phase 2 persists it to
-`~/.kb/index.db` (SQLite FTS5) so subsequent runs skip the build entirely.
+Indexes are stored separately from the vault structure:
 
 ```
 ~/.kb/
-├── config.toml    # vault path and settings
-└── index.db       # persisted index (Phase 2)
+├── config.toml
+└── indexes/
+    └── <vault-name>/
+        ├── tags.json      # tag → [note paths]
+        ├── links.json     # link graph (future)  
+        └── search.tantivy/ # full-text index (future)
 ```
 
-The SQLite schema mirrors the in-memory structures — see `docs/spec.md` for
-the full schema.
+Each vault gets its own index directory. Indexes are built by `kb index` and consumed by various commands (`kb tags`, `kb notes --tag`, etc.).
 
-### Incremental Rebuild
+## File System Rules
 
-On startup (Phase 2):
-1. Load index from `~/.kb/index.db`
-2. For each `.md` file in vault, compare `mtime` against stored `modified`
-3. Re-parse only changed files, update their rows in the DB
-4. Rebuild `LinkGraph` and `TagMap` from updated data
+**Included:**
+- All `.md` files in domain directories
+- Domain directories (non-hidden, don't start with `_`)
 
-### `kb index` Command
+**Excluded:**  
+- `__templates/`, `__attachments/` — utility directories
+- `_logs/`, `_planning/` — private directories
+- Hidden files/dirs (starting with `.`)
+- Non-markdown files
 
-Forces a full rebuild regardless of mtimes:
+**Root files:**
+Files at vault root (like `01-home.md`) are included but don't belong to any domain.
 
-```bash
-kb index           # incremental — only re-parses changed files
-kb index --rebuild # force full rebuild from scratch
-kb index --status  # show: last built, note count, index size
-```
+## Performance
 
----
+No in-memory caching — everything scans the filesystem on each command. This keeps the implementation simple and always reflects the current state of files.
 
-## Excludes
+Typical performance on 658 notes:
+- Domain listing: ~5ms
+- Note listing: ~20ms  
+- Note reading: ~1ms
 
-The `ignore` crate handles traversal. These paths are always excluded:
-
-| Path | Excluded from |
-|---|---|
-| `__templates/` | everything |
-| `__attachments/` | everything |
-| `__canvas/` | everything |
-| `_logs/` | search (included in navigation) |
-| `_planning/` | search (included in navigation) |
-
-`--logs` and `--planning` flags override the search exclusions.
+Fast enough for interactive use while keeping the codebase minimal.

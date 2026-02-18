@@ -14,18 +14,18 @@ kb index
 # Indexed 658 notes (lucene: 27, elasticsearch: 18, ...)
 ```
 
-Three structures are produced and saved under `~/.kb/vaults/<name>/`:
+Three structures are produced and saved under `~/.kb/indexes/<vault-name>/`:
 
 ```
 ~/.kb/
   config.toml
-  vaults/
+  indexes/
     personal/
-      index/        ← Tantivy full-text search index
-      tags.json     ← tag → [note paths]
-      links.json    ← note path → [resolved note paths]
+      search.tantivy/   ← Tantivy full-text search index
+      tags.json        ← tag → [note paths]  
+      links.json       ← note path → [resolved note paths]
     work/
-      index/
+      search.tantivy/
       tags.json
       links.json
 ```
@@ -47,7 +47,7 @@ Powers `kb notes --term <query>` with BM25-ranked full-text search.
 ### Location
 
 ```
-~/.kb/index/      ← Tantivy index directory (multiple files managed by Tantivy)
+~/.kb/indexes/<vault-name>/search.tantivy/      ← Tantivy index directory
 ```
 
 ### Schema
@@ -89,12 +89,12 @@ No persistent in-memory state — index is opened per command invocation.
 
 ### Purpose
 
-Powers `kb tags` (list all tags with counts) and `kb tag <name>` (notes with a given tag).
+Powers `kb tags` (list all tags with counts) and `kb notes --tag <name>` (filter notes by tag).
 
 ### Location
 
 ```
-~/.kb/tags.json
+~/.kb/indexes/<vault-name>/tags.json
 ```
 
 ### On-disk format
@@ -295,7 +295,7 @@ kb --vault work index # index a named vault
 
 **If no vault is configured:**
 ```
-Error: no vaults configured. Run `kb vault add <name> <path>` to get started.
+Error: no vaults configured. Run `kb add <name> <path>` to get started.
 ```
 
 **If index directory cannot be created:**

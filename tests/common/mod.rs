@@ -20,12 +20,40 @@ pub fn setup_vault() -> TempDir {
     tmp
 }
 
-/// Build a `kb` command with config dir and vault both pointed at `tmp`.
+/// Build a `kb` command with a properly configured vault in the temp directory.
 pub fn kb(tmp: &TempDir) -> Command {
     let mut cmd = cargo_bin_cmd!("kb");
+    
+    // Set KB_CONFIG_DIR to store config in the temp directory
     cmd.env("KB_CONFIG_DIR", tmp.path());
-    cmd.env("KB_VAULT", tmp.path());
+    
+    // Create a proper config file for the vault
+    setup_vault_config(tmp);
+    
     cmd
+}
+
+/// Set up a config file in the temp directory for the test vault.
+fn setup_vault_config(tmp: &TempDir) {
+    use std::fs;
+    
+    // Create the config directory
+    let config_dir = tmp.path().join(".kb");
+    fs::create_dir_all(&config_dir).unwrap();
+    
+    // Create config.toml with proper vault configuration format
+    let vault_path = tmp.path().to_string_lossy().replace("\\", "\\\\"); // Handle Windows paths
+    let config_content = format!(
+        r#"active_vault = "test-vault"
+
+[vaults.test-vault]
+path = "{}"
+"#,
+        vault_path
+    );
+    
+    let config_path = config_dir.join("config.toml");
+    fs::write(&config_path, config_content).unwrap();
 }
 
 fn copy_dir(src: &Path, dst: &Path) -> std::io::Result<()> {

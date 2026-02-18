@@ -61,18 +61,18 @@ Multi-vault support added before the index work begins.
 
 | Step | What | Status |
 |------|------|--------|
-| 1 | `kb config`, `kb config set vault` | ✅ |
+| 1 | `kb config`, vault management | ✅ |
 | 2 | `kb domains`, `kb notes`, `--sort`, `--domain`, `--files` | ✅ |
 | 3 | `kb read <path>`, `kb read --outline` | ✅ |
+| 4 | Multi-vault: `kb add`, `kb use`, `kb vaults` | ✅ |
+| 9a | `kb tags`, `kb notes --tag` (tag filtering) | ✅ |
 
 ### Next
 
-**Step 4 — Multi-vault config**  
-Change `Config` from a single `vault` field to `default + HashMap<name, path>`.  
-Add `kb vault add/list/default/remove`.  
-Update vault resolution: `KB_VAULT` (path) → `--vault <name>` → config default.  
-`KB_VAULT` stays as a raw path override so tests need no changes.  
-See `docs/config.md`.
+**Step 4 — Multi-vault config** ✅ **DONE**  
+Changed `Config` to use `active_vault + HashMap<name, VaultConfig>`.  
+Added `kb add <name> <path>`, `kb use <name>`, `kb vaults`.  
+First vault added becomes active automatically.
 
 **Step 5 — Parser (`src/parser.rs`)**  
 Parse a single note into `ParsedNote`:
@@ -107,9 +107,9 @@ Results ranked by BM25, displayed same as `kb notes`.
 `kb links <note>`, `kb backlinks <note>`, `kb orphans`, `kb deadends`.  
 All read from `links.json` — no vault scan at query time.
 
-**Step 10 — Tags commands**  
-`kb tags` (all tags + counts), `kb tag <name>` (notes with tag).  
-Read from `tags.json`.
+**Step 10 — Tags commands** ✅ **PARTIALLY DONE**  
+`kb tags` (all tags + counts), `kb notes --tag <name>` (filter by tag).  
+Built tag index with `kb index`. Tag-first filtering for efficiency.
 
 **Step 11 — Write ops**  
 `kb new`, `kb append`, `kb daily`.

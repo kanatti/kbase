@@ -454,6 +454,7 @@ dependencies = [
  "colored",
  "dirs",
  "ignore",
+ "once_cell",
  "predicates",
  "regex",
  "serde",
