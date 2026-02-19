@@ -162,12 +162,5 @@ fn read_first_heading(path: &std::path::Path) -> Option<String> {
 }
 
 fn get_index_dir(vault: &Vault) -> Result<std::path::PathBuf> {
-    let kb_dir = if let Ok(dir) = std::env::var("KB_CONFIG_DIR") {
-        std::path::PathBuf::from(dir)
-    } else {
-        dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?
-    }
-    .join(".kb");
-
-    Ok(kb_dir.join("indexes").join(&vault.name))
+    Ok(crate::config::kb_home()?.join("indexes").join(&vault.name))
 }

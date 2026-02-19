@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
 
-const CONFIG_DIR: &str = ".kb";
+const DEFAULT_KB_HOME: &str = ".kb";
 const CONFIG_FILE: &str = "config.toml";
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -21,6 +21,7 @@ pub struct VaultConfig {
 }
 
 impl Config {
+    /// Load config from disk.
     pub fn load() -> Result<Self> {
         let path = config_path()?;
 
@@ -41,6 +42,7 @@ impl Config {
         }
     }
 
+    /// Save config to disk.
     pub fn save(&self) -> Result<()> {
         let path = config_path()?;
         fs::create_dir_all(path.parent().unwrap()).context("Could not create config directory")?;
@@ -52,124 +54,17 @@ impl Config {
     }
 }
 
-pub fn show() -> Result<()> {
-    let path = config_path()?;
-
-    if !path.exists() {
-        println!("No config found.");
-        println!("Run `kb config add <name> <path>` to add a vault.");
-        return Ok(());
+/// Returns the kb home directory (~/.kb by default, or $KB_HOME if set).
+/// $KB_HOME points directly to the kb home dir (e.g. /tmp/test/.kb in tests).
+pub fn kb_home() -> Result<PathBuf> {
+    if let Ok(dir) = std::env::var("KB_HOME") {
+        return Ok(PathBuf::from(dir));
     }
-
-    let config = Config::load()?;
-    println!("Config: {}", path.display());
-    println!("active_vault = {}", config.active_vault);
-    println!("\nVaults:");
-    for (name, vault_config) in &config.vaults {
-        let marker = if name == &config.active_vault {
-            " (active)"
-        } else {
-            ""
-        };
-        println!("  {} = {}{}", name, vault_config.path.display(), marker);
-    }
-
-    Ok(())
+    let home = dirs::home_dir().context("Could not find home directory")?;
+    Ok(home.join(DEFAULT_KB_HOME))
 }
 
-pub fn add_vault(name: &str, path: &str) -> Result<()> {
-    let vault_path = resolve_path(path)?;
-
-    // Load existing config or create new one
-    let mut config = Config::load().unwrap_or_else(|_| Config {
-        active_vault: name.to_string(),
-        vaults: HashMap::new(),
-    });
-
-    // Add the vault
-    config
-        .vaults
-        .insert(name.to_string(), VaultConfig { path: vault_path });
-
-    // If this is the first vault, make it active
-    if config.vaults.len() == 1 {
-        config.active_vault = name.to_string();
-    }
-
-    config.save()?;
-    println!("Added vault '{}' to config", name);
-    if config.active_vault == name {
-        println!("Set as active vault");
-    }
-
-    Ok(())
-}
-
-pub fn set_active_vault(name: &str) -> Result<()> {
-    let mut config = Config::load()?;
-
-    if !config.vaults.contains_key(name) {
-        let available_vaults: Vec<&String> = config.vaults.keys().collect();
-        bail!(
-            "Vault '{}' not found. Available vaults: {}",
-            name,
-            available_vaults
-                .iter()
-                .map(|s| s.as_str())
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-    }
-
-    config.active_vault = name.to_string();
-    config.save()?;
-    println!("Set '{}' as active vault", name);
-
-    Ok(())
-}
-
-pub fn list_vaults() -> Result<()> {
-    let config = Config::load()?;
-
-    if config.vaults.is_empty() {
-        println!("No vaults configured.");
-        println!("Run `kb config add <name> <path>` to add a vault.");
-        return Ok(());
-    }
-
-    println!("Configured vaults:");
-    for (name, vault_config) in &config.vaults {
-        let marker = if name == &config.active_vault {
-            " (active)"
-        } else {
-            ""
-        };
-        println!("  {}{} -> {}", name, marker, vault_config.path.display());
-    }
-
-    Ok(())
-}
-
-fn config_path() -> Result<PathBuf> {
-    let kb_dir = if let Ok(dir) = std::env::var("KB_CONFIG_DIR") {
-        // KB_CONFIG_DIR points directly to the .kb directory
-        PathBuf::from(dir).join(CONFIG_DIR)
-    } else {
-        // Default: ~/.kb
-        dirs::home_dir()
-            .context("Could not find home directory")?
-            .join(CONFIG_DIR)
-    };
-
-    Ok(kb_dir.join(CONFIG_FILE))
-}
-
-fn resolve_path(path: &str) -> Result<PathBuf> {
-    let expanded = PathBuf::from(shellexpand::tilde(path).as_ref());
-
-    if !expanded.exists() {
-        bail!("Path does not exist: {}", expanded.display());
-    }
-
-    Ok(expanded)
+/// Returns the path to the config file (~/.kb/config.toml by default).
+pub fn config_path() -> Result<PathBuf> {
+    Ok(kb_home()?.join(CONFIG_FILE))
 }

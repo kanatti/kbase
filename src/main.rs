@@ -13,6 +13,12 @@ pub enum IndexType {
     Search,
 }
 
+#[derive(ValueEnum, Clone, Debug, PartialEq)]
+pub enum SortBy {
+    Name,
+    Count,
+}
+
 #[derive(Parser)]
 #[command(name = "kb", about = "Knowledge Base CLI for markdown vaults", version)]
 struct Cli {
@@ -36,9 +42,9 @@ pub enum Command {
 
     /// List all domains with note counts
     Domains {
-        /// Sort by: name (default) or count
-        #[arg(long, default_value = "name")]
-        sort: String,
+        /// Field to sort by
+        #[arg(long, default_value_t = SortBy::Name, value_enum)]
+        sort: SortBy,
     },
 
     /// List notes (all, or filtered by domain or search term)
@@ -47,7 +53,7 @@ pub enum Command {
         #[arg(long)]
         domain: Option<String>,
 
-        /// Filter by name/title match (not yet implemented)
+        /// Filter by name/title match
         #[arg(long)]
         term: Option<String>,
 
@@ -72,9 +78,9 @@ pub enum Command {
 
     /// List all tags
     Tags {
-        /// Sort by: name (default) or count
-        #[arg(long, default_value = "name")]
-        sort: String,
+        /// Field to sort by
+        #[arg(long, default_value_t = SortBy::Name, value_enum)]
+        sort: SortBy,
     },
 
     /// Build search and tag indexes
@@ -84,8 +90,6 @@ pub enum Command {
         only: Vec<IndexType>,
     },
 }
-
-// Remove ConfigAction enum entirely
 
 fn main() {
     if let Err(e) = run() {

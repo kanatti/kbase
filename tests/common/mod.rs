@@ -23,8 +23,8 @@ pub fn setup_vault() -> TempDir {
 pub fn kb(tmp: &TempDir) -> Command {
     let mut cmd = cargo_bin_cmd!("kb");
 
-    // Set KB_CONFIG_DIR to store config in the temp directory
-    cmd.env("KB_CONFIG_DIR", tmp.path());
+    // Set KB_HOME to point directly to the .kb dir inside the temp directory
+    cmd.env("KB_HOME", tmp.path().join(".kb"));
 
     // Create a proper config file for the vault
     setup_vault_config(tmp);

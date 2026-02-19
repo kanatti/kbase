@@ -3,14 +3,15 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 
+/// An open markdown vault rooted at a filesystem path.
 pub struct Vault {
     pub root: PathBuf,
     pub name: String,
 }
 
+/// A top-level domain folder inside a vault.
 pub struct Domain {
     pub name: String,
-    pub path: PathBuf,
     pub note_count: usize,
 }
 
@@ -58,11 +59,7 @@ impl Vault {
 
             let note_count = count_md_files(&path).unwrap_or(0);
 
-            domains.push(Domain {
-                name,
-                path,
-                note_count,
-            });
+            domains.push(Domain { name, note_count });
         }
 
         // Default: alphabetical

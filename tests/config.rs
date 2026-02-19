@@ -5,7 +5,7 @@ use tempfile::TempDir;
 
 fn kb(tmp: &TempDir) -> Command {
     let mut cmd = cargo_bin_cmd!("kb");
-    cmd.env("KB_CONFIG_DIR", tmp.path());
+    cmd.env("KB_HOME", tmp.path().join(".kb"));
     cmd
 }
 

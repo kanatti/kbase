@@ -30,7 +30,7 @@ Read these before working on any feature:
 ```
 src/
   main.rs       — clap CLI, command dispatch
-  config.rs     — Config struct, load/save, KB_CONFIG_DIR
+  config.rs     — Config struct, load/save, KB_HOME
   vault.rs      — Vault, Domain, Note structs + filesystem methods
 ```
 
@@ -64,7 +64,7 @@ kb notes --term <term>           # not yet implemented
 
 - **Error handling:** `anyhow` everywhere, single handler in `main`
 - **Vault resolution:** `--vault` flag → `KB_VAULT` env → `~/.kb/config.toml`
-- **Config dir override:** `KB_CONFIG_DIR` env (used in tests)
+- **Home dir override:** `KB_HOME` env (used in tests)
 - **Domains:** top-level dirs not starting with `_` or `.`
 - **No frontmatter** in most vault notes — metadata is inline bold text
 - **Phase 1:** in-memory only, full index built per run

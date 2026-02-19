@@ -105,7 +105,7 @@ fn domains_sorted_by_count() {
 fn domains_no_vault_shows_error() {
     let tmp = setup_vault();
     let mut cmd = cargo_bin_cmd!("kb");
-    cmd.env("KB_CONFIG_DIR", tmp.path());
+    cmd.env("KB_HOME", tmp.path().join(".kb"));
     cmd.env_remove("KB_VAULT");
 
     cmd.arg("domains")

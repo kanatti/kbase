@@ -1,10 +1,10 @@
-use crate::vault::Vault;
+use crate::{SortBy, vault::Vault};
 use anyhow::Result;
 
-pub fn handle_domains(vault: &Vault, sort: String) -> Result<()> {
+pub fn handle_domains(vault: &Vault, sort: SortBy) -> Result<()> {
     let mut domains = vault.domains()?;
 
-    if sort == "count" {
+    if sort == SortBy::Count {
         domains.sort_by(|a, b| b.note_count.cmp(&a.note_count));
     }
 

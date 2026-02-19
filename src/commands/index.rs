@@ -1,5 +1,5 @@
 use crate::{IndexType, tags, vault::Vault};
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
@@ -27,15 +27,7 @@ pub fn handle_index(vault: &Vault, only: Vec<IndexType>) -> Result<()> {
 }
 
 fn get_index_dir(vault: &Vault) -> Result<PathBuf> {
-    let kb_dir = if let Ok(dir) = std::env::var("KB_CONFIG_DIR") {
-        PathBuf::from(dir)
-    } else {
-        dirs::home_dir().ok_or_else(|| anyhow!("Could not find home directory"))?
-    }
-    .join(".kb");
-
-    // Use the vault name for index directory
-    Ok(kb_dir.join("indexes").join(&vault.name))
+    Ok(crate::config::kb_home()?.join("indexes").join(&vault.name))
 }
 
 fn build_tag_index(vault: &Vault, index_dir: &Path) -> Result<()> {
