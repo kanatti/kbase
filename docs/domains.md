@@ -1,7 +1,27 @@
 # Domains
 
-A **domain** is a top-level directory in the vault. Domains are the primary
-navigation axis in `kb` — most commands are scoped to one or more domains.
+A **domain** is a top-level directory in the vault. Domains organize notes by topic or project area.
+
+---
+
+## List domains
+
+```bash
+kb domains                  # list all domains sorted by name
+kb domains --sort count     # sort by note count (descending)
+kb domains --sort name      # sort by name (explicit)
+```
+
+Shows a table with domain names and note counts:
+
+```
+Domain           Notes
+elasticsearch    2
+lucene           3
+rust             1
+```
+
+If the vault has no domains, shows "No domains found in vault."
 
 ---
 
@@ -13,19 +33,12 @@ Any top-level directory that does NOT start with `_` or `.`:
 kanatti-notes/
 ├── elasticsearch/    ← domain
 ├── lucene/           ← domain
-├── datafusion/       ← domain
 ├── rust/             ← domain
-├── arrow/            ← domain
-│   ...~50 more...
 │
 ├── __templates/      ← NOT a domain (starts with __)
-├── __attachments/    ← NOT a domain (starts with __)
-├── __canvas/         ← NOT a domain (starts with __)
 ├── _logs/            ← NOT a domain (starts with _)
-├── _planning/        ← NOT a domain (starts with _)
 │
 ├── 01-home.md        ← NOT a domain (it's a file)
-├── CLAUDE.md         ← NOT a domain (it's a file)
 ```
 
 ---
@@ -43,36 +56,13 @@ elasticsearch/
 └── esql-analysis.md   # content notes (flat, kebab-case names)
 ```
 
-Not every domain has all four standard files — smaller domains may just have a
-few content notes.
-
 ---
 
-## Domains in commands
+## Using domains in commands
 
-Domains are the primary scoping mechanism:
+Many commands accept a `--domain` filter:
 
 ```bash
-kb domains                         # list all domains with note counts
-kb ls lucene                       # list notes inside a domain
-kb tasks -d elasticsearch          # tasks scoped to a domain
-kb search "BKD tree" -d lucene     # search scoped to a domain
-kb research lucene datafusion      # multi-domain research session
+kb notes --domain lucene           # list notes in a domain
+kb notes --tag deep-dive --domain lucene  # combine with tags
 ```
-
----
-
-## In code
-
-`vault.domains()` returns `Vec<Domain>` by scanning the vault root:
-
-```rust
-struct Domain {
-    name: String,       // "elasticsearch"
-    path: PathBuf,      // /vault/elasticsearch
-    note_count: usize,  // number of .md files inside
-}
-```
-
-Implementation: `read_dir(vault_root)`, keep entries that are directories and
-whose name does not start with `_` or `.`, count `.md` files in each.
