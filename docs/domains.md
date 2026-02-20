@@ -2,8 +2,6 @@
 
 A **domain** is a top-level directory in the vault. Domains organize notes by topic or project area.
 
----
-
 ## List domains
 
 ```bash
@@ -23,8 +21,6 @@ rust             1
 
 If the vault has no domains, shows "No domains found in vault."
 
----
-
 ## What counts as a domain
 
 Any top-level directory that does NOT start with `_` or `.`:
@@ -41,8 +37,6 @@ kanatti-notes/
 ├── 01-home.md        ← NOT a domain (it's a file)
 ```
 
----
-
 ## Domain folder convention
 
 Most domains follow a standard layout:
@@ -55,8 +49,6 @@ elasticsearch/
 ├── 04-archive.md      # completed phases and tasks
 └── esql-analysis.md   # content notes (flat, kebab-case names)
 ```
-
----
 
 ## Using domains in commands
 

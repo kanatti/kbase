@@ -1,29 +1,21 @@
 # Tags
 
-How kb discovers, indexes, and queries tags across the knowledge base.
+Inline `#tags` for categorizing and discovering notes across your vault.
 
----
-
-## Overview
-
-Tags in kb work as metadata labels that help categorize and discover notes. They integrate with `kb notes` command as a filter.
+## Usage
 
 ```bash
-kb notes --tag deep-dive                    # notes with this tag
-kb notes --tag wip --domain lucene          # tag + domain filter  
-kb tags                                     # list all available tags
-kb index                                    # build tag index
+kb tags                                      # list all tags
+kb tags --sort count                         # sort by usage frequency
+kb notes --tag deep-dive                     # filter notes by tag
+kb notes --tag wip --domain lucene           # combine tag + domain filter
+kb index                                     # build tag index
+kb index --only tags                         # build only tag index
 ```
 
-Tags are extracted from inline content: `#tag` anywhere in note body (excluding code blocks).
+## Tag Format
 
----
-
-## Tag Sources
-
-### Inline Tags
-
-Hash-prefixed tags anywhere in note content:
+Hash-prefixed tags in note content:
 
 ```markdown
 # BKD Trees
@@ -34,23 +26,20 @@ The #performance characteristics are...
 ```
 
 **Rules:**
-- Tags inside code blocks (``` fenced) are ignored
-- Only alphanumeric + underscore/hyphen: `#valid-tag`, `#tag_name`
-- Must start with letter: `#tag123` ✅, `#123tag` ❌
+- Alphanumeric + underscore/hyphen: `#deep-dive`, `#rust_lang`, `#v2024`
+- Must start with letter or number: `#tag123`, `#2024abc`
+- Pure numbers ignored: `#123`, `#20298` (treated as issue/PR references)
+- Code blocks (```) are skipped during extraction
 
----
+## Index Storage
 
-## Tag Index
-
-### Storage Location
+Tag index is stored as JSON at:
 
 ```
 ~/.kb/indexes/<vault-name>/tags.json
 ```
 
-### Format
-
-Simple JSON mapping from tag names to note paths:
+Format maps tag names to note paths:
 
 ```json
 {
@@ -64,82 +53,64 @@ Simple JSON mapping from tag names to note paths:
 }
 ```
 
----
-
 ## Commands
 
 ### `kb tags`
 
-List all tags with usage counts.
+List all tags with note counts.
 
 ```bash
-kb tags                          # all tags, sorted by name
-kb tags --sort count             # sort by usage frequency
+kb tags                          # alphabetical (default)
+kb tags --sort name              # alphabetical (explicit)
+kb tags --sort count             # by usage frequency
 ```
 
-**Output:**
+Output:
+
 ```
-deep-dive (2 notes)
-performance (1 note)  
-wip (1 note)
+Tag          Notes
+deep-dive    2
+performance  1
+wip          1
 ```
 
 ### `kb notes --tag`
 
-Filter notes by tag.
+Filter notes by tag. Requires tag index to be built first.
 
 ```bash
-kb notes --tag deep-dive                      # all notes with tag
+kb notes --tag deep-dive                      # all notes with this tag
 kb notes --tag deep-dive --domain lucene      # tag + domain filter
-kb notes --tag wip --files                    # tag filter + filename-only output  
+kb notes --tag wip --files                    # show paths only
 ```
 
-**Output** follows `kb notes` format:
-```
-lucene/search-flow.md      Search Flow Deep Dive
-elasticsearch/esql-analysis.md    ESQL Analysis
-```
+Output matches `kb notes` format (table or paths).
 
 ### `kb index`
 
-Build the tag index by scanning the vault.
+Build tag index by scanning vault content.
 
 ```bash
-kb index                         # build tag index (and others)
+kb index                         # build all indexes (tags, links, search)
+kb index --only tags             # build only tag index
 ```
 
-**Output:**
-```
-Building indexes for vault 'personal'...
-Tag index built: 47 tags across 658 notes
-```
+## Error Messages
 
----
-
-## Error Handling
-
-### Missing Index
-
+**Missing index:**
 ```bash
-kb notes --tag deep-dive
-# No tag index found. Run `kb index` to build it first.
+$ kb notes --tag deep-dive
+No tag index found. Run `kb index` to build it first.
 ```
 
-### Tag Not Found
-
+**Tag not found:**
 ```bash
-kb notes --tag nonexistent
-# No notes with tag 'nonexistent'.
+$ kb notes --tag nonexistent
+No notes with tag 'nonexistent'.
 ```
 
----
-
-## Implementation
-
-Tag-first filtering for efficiency:
-1. Load tag index from `tags.json`
-2. Get paths for the specified tag
-3. Convert paths to Note structs (only for tagged files)
-4. Apply domain filter if specified
-
-This avoids scanning all files when filtering by tag.
+**Tag + domain no results:**
+```bash
+$ kb notes --tag wip --domain rust
+No notes in domain 'rust' with tag 'wip'.
+```

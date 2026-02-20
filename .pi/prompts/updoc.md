@@ -43,3 +43,5 @@ Update documentation for: $ARGUMENTS
 - **Minimal:** Only document what users need to know
 - **User-focused:** DO NOT include implementation details, struct definitions, or "In code" sections
 - **Consistent:** Match the style of existing kb documentation
+- **No separators:** DO NOT use `---` horizontal rules between sections
+- **No emojis:** DO NOT use emoji characters (✅, ❌, etc.)

@@ -1,8 +1,6 @@
-# kb read
+# Read
 
 Read a note's content to stdout.
-
----
 
 ## Usage
 
@@ -31,8 +29,6 @@ kb read lucene/search-flow.md
 ```
 
 No short names, no fuzzy resolution. Full path, always unambiguous.
-
----
 
 ## Output
 
@@ -71,9 +67,8 @@ kb read lucene/search-flow.md --outline
   ## Phase 2: Scoring
 ```
 
-Implementation: scan lines for `^#{1,6} `, indent by `(level - 1) * 2` spaces.
-
----
+Heading detection: lines starting with 1-6 `#` followed by a space.
+Indentation: `(level - 1) * 2` spaces.
 
 ## Error Handling
 
@@ -84,27 +79,3 @@ Error: note not found: lucene/nonexistent.md
 ```
 
 No suggestions. Use `kb notes --domain lucene` to find the right path.
-
----
-
-## In Code
-
-```rust
-fn cmd_read(vault: &Vault, path: &str, outline: bool) -> Result<()> {
-    let full_path = vault.root.join(path);
-
-    if !full_path.exists() {
-        bail!("note not found: {}", path);
-    }
-
-    let content = fs::read_to_string(&full_path)?;
-
-    if outline {
-        print_outline(&content);
-    } else {
-        print!("{}", content);
-    }
-
-    Ok(())
-}
-```

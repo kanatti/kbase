@@ -1,127 +1,77 @@
 # Vault
 
-`Vault` is the core abstraction in `kb`. It represents a knowledge base directory containing markdown files organized into domains.
-
----
+A **vault** is a directory containing markdown notes organized into top-level domain folders. Each vault is configured in `~/.kb/config.toml` and can be accessed via `kb` commands.
 
 ## Structure
 
-```rust
-pub struct Vault {
-    pub root: PathBuf,    // vault root directory
-    pub name: String,     // vault name from config
-}
+```
+kanatti-notes/              ← vault root
+├── elasticsearch/          ← domain
+│   ├── 01-home.md
+│   └── esql-analysis.md
+├── lucene/                 ← domain
+│   ├── 01-home.md
+│   ├── search-flow.md
+│   └── codecs.md
+├── __templates/            ← excluded (starts with __)
+├── _logs/                  ← excluded (starts with _)
+└── 01-home.md              ← root-level note (no domain)
 ```
 
-Simple and lightweight — no cached indexes or complex in-memory structures. The vault provides methods to scan and read files on demand.
+**What gets included:**
+- All `.md` files in domain folders
+- Domain folders (top-level dirs not starting with `_` or `.`)
+- Root-level `.md` files (exist but have no domain)
 
-## Domain
+**What gets excluded:**
+- Directories starting with `_` (e.g., `_logs/`, `_planning/`)
+- Directories starting with `__` (e.g., `__templates/`, `__attachments/`)
+- Hidden files/directories (starting with `.`)
+- Non-markdown files
 
-Top-level directories become domains:
+## Domains
 
-```rust
-pub struct Domain {
-    pub name: String,        // "elasticsearch"
-    pub path: PathBuf,       // /vault/elasticsearch  
-    pub note_count: usize,   // number of .md files inside
-}
+A **domain** is a top-level directory in the vault. See [domains.md](domains.md) for details.
+
+```bash
+kb domains                  # list all domains
+kb domains --sort count     # sort by note count
 ```
 
-**Domain Rules:**
-- Only directories at vault root
-- Names cannot start with `_` or `.` (excludes `__templates`, `_logs`, etc.)
-- Empty directories are included (with count 0)
+## Notes
 
-## Note
+Individual markdown files are called **notes**. See [notes.md](notes.md) for details.
 
-Individual markdown files:
-
-```rust
-pub struct Note {
-    pub path: PathBuf,    // relative to vault: "elasticsearch/esql-analysis.md"
-    pub filename: String, // "esql-analysis.md"
-    pub title: String,    // first # heading, or filename stem if none
-}
+```bash
+kb notes                    # list all notes
+kb notes --domain lucene    # notes in a domain
+kb notes --tag deep-dive    # notes with a tag (requires index)
 ```
 
-Notes are created on-demand by scanning directories. The title is extracted by reading the first few lines to find a `# Heading`.
-
-## Operations
-
-### Domain Listing
-
-```rust
-impl Vault {
-    pub fn domains(&self) -> Result<Vec<Domain>> {
-        // Scan vault root for directories
-        // Count .md files in each
-        // Return sorted by name
-    }
-}
-```
-
-### Note Listing
-
-```rust  
-impl Vault {
-    pub fn all_notes(&self) -> Result<Vec<Note>> {
-        // Walk all domains, collect all .md files
-    }
-    
-    pub fn notes_in_domain(&self, domain: &str) -> Result<Vec<Note>> {
-        // Scan single domain directory
-    }
-}
-```
-
-### Note Reading
-
-```rust
-impl Vault {
-    pub fn read_note(&self, path: &str) -> Result<String> {
-        // Read file content by vault-relative path
-    }
-}
-```
+**Title extraction:**
+- Notes display their first `# Heading` as the title
+- Scans first 20 lines of each file
+- Falls back to filename stem if no heading found
 
 ## Index Storage
 
-Indexes are stored separately from the vault structure:
+Vault indexes are stored separately from the vault content:
 
 ```
 ~/.kb/
 ├── config.toml
 └── indexes/
     └── <vault-name>/
-        ├── tags.json      # tag → [note paths]
-        ├── links.json     # link graph (future)  
-        └── search.tantivy/ # full-text index (future)
+        ├── tags.json           # tag → note paths mapping
+        └── search.tantivy/     # future: full-text index
 ```
 
-Each vault gets its own index directory. Indexes are built by `kb index` and consumed by various commands (`kb tags`, `kb notes --tag`, etc.).
+Each vault has its own index directory. Indexes are built by `kb index` and used by tag-related commands.
 
-## File System Rules
+**Building the index:**
 
-**Included:**
-- All `.md` files in domain directories
-- Domain directories (non-hidden, don't start with `_`)
+```bash
+kb index                    # scan vault and build indexes
+```
 
-**Excluded:**  
-- `__templates/`, `__attachments/` — utility directories
-- `_logs/`, `_planning/` — private directories
-- Hidden files/dirs (starting with `.`)
-- Non-markdown files
-
-**Root files:**
-Files at vault root (like `01-home.md`) are included but don't belong to any domain.
-
-## Performance
-
-No in-memory caching — everything scans the filesystem on each command. This keeps the implementation simple and always reflects the current state of files.
-
-Typical performance on 658 notes:
-- Domain listing: ~5ms
-- Note listing: ~20ms  
-- Note reading: ~1ms
-
-Fast enough for interactive use while keeping the codebase minimal.
+This creates/updates `tags.json` with mappings from tags to note paths. Required for `kb notes --tag` and `kb tags` commands.
