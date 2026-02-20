@@ -3,6 +3,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 
+use crate::config::kb_home;
+use crate::tags::TagIndex;
+
 /// An open markdown vault rooted at a filesystem path.
 pub struct Vault {
     pub root: PathBuf,
@@ -26,45 +29,58 @@ pub struct Note {
 
 impl Vault {
     pub fn open(root: PathBuf, name: String) -> Result<Self> {
-        if !root.exists() {
-            bail!("Vault path does not exist: {}", root.display());
-        }
-        if !root.is_dir() {
-            bail!("Vault path is not a directory: {}", root.display());
-        }
+        validate_dir(&root, "Vault path")?;
         Ok(Vault { root, name })
+    }
+
+    /// Get the directory where indexes for this vault are stored.
+    pub fn index_dir(&self) -> Result<PathBuf> {
+        Ok(kb_home()?.join("indexes").join(&self.name))
+    }
+
+    /// Load the tag index for this vault.
+    /// Returns None if the index hasn't been built yet.
+    pub fn load_tag_index(&self) -> Result<Option<TagIndex>> {
+        let path = self.index_dir()?.join("tags.json");
+        if !path.exists() {
+            return Ok(None);
+        }
+        Ok(Some(TagIndex::load_from_json(&path)?))
+    }
+
+    /// Save the tag index for this vault.
+    pub fn save_tag_index(&self, index: &TagIndex) -> Result<()> {
+        let path = self.index_dir()?.join("tags.json");
+        index.save_to_json(&path)
     }
 
     /// List all domain folders (top-level dirs, excluding those starting with `_` or `.`).
     pub fn domains(&self) -> Result<Vec<Domain>> {
-        let mut domains = Vec::new();
+        let mut domains: Vec<Domain> = read_dir(&self.root)?
+            .filter_map(|entry| {
+                let entry = entry.ok()?;
+                let path = entry.path();
 
-        for entry in fs::read_dir(&self.root).context("Could not read vault directory")? {
-            let entry = entry.context("Could not read directory entry")?;
-            let path = entry.path();
+                // Only directories
+                if !path.is_dir() {
+                    return None;
+                }
 
-            if !path.is_dir() {
-                continue;
-            }
+                // Get valid UTF-8 name
+                let name = path.file_name()?.to_str()?.to_string();
 
-            let name = match path.file_name().and_then(|n| n.to_str()) {
-                Some(n) => n.to_string(),
-                None => continue,
-            };
+                // Skip excluded directories
+                if is_excluded_domain(&name) {
+                    return None;
+                }
 
-            // Exclude hidden dirs and any dir starting with _ (covers _logs, __templates, etc.)
-            if name.starts_with('.') || name.starts_with('_') {
-                continue;
-            }
+                let note_count = count_md_files(&path).unwrap_or(0);
 
-            let note_count = count_md_files(&path).unwrap_or(0);
+                Some(Domain { name, note_count })
+            })
+            .collect();
 
-            domains.push(Domain { name, note_count });
-        }
-
-        // Default: alphabetical
         domains.sort_by(|a, b| a.name.cmp(&b.name));
-
         Ok(domains)
     }
 
@@ -91,51 +107,35 @@ impl Vault {
     /// List all .md notes in a named domain folder.
     pub fn notes_in_domain(&self, domain: &str) -> Result<Vec<Note>> {
         let domain_path = self.root.join(domain);
+        validate_dir(&domain_path, &format!("Domain '{}'", domain))?;
 
-        if !domain_path.exists() {
-            bail!("Domain not found: '{}'", domain);
-        }
-        if !domain_path.is_dir() {
-            bail!("'{}' is not a domain folder", domain);
-        }
+        let mut notes: Vec<Note> = read_dir(&domain_path)?
+            .filter_map(|entry| {
+                let entry = entry.ok()?;
+                let path = entry.path();
 
-        let mut notes = Vec::new();
+                // Only .md files
+                if !path.is_file() {
+                    return None;
+                }
+                if path.extension()?.to_str()? != "md" {
+                    return None;
+                }
 
-        for entry in fs::read_dir(&domain_path).context("Could not read domain directory")? {
-            let entry = entry.context("Could not read entry")?;
-            let path = entry.path();
+                let filename = path.file_name()?.to_str()?.to_string();
+                let stem = path.file_stem()?.to_str().unwrap_or(&filename).to_string();
+                let title = read_first_heading(&path).unwrap_or(stem);
+                let rel_path = path.strip_prefix(&self.root).unwrap_or(&path).to_path_buf();
 
-            if !path.is_file() {
-                continue;
-            }
-            if path.extension().and_then(|e| e.to_str()) != Some("md") {
-                continue;
-            }
-
-            let filename = match path.file_name().and_then(|n| n.to_str()) {
-                Some(n) => n.to_string(),
-                None => continue,
-            };
-
-            let stem = path
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or(&filename)
-                .to_string();
-
-            let title = read_first_heading(&path).unwrap_or(stem);
-
-            let rel_path = path.strip_prefix(&self.root).unwrap_or(&path).to_path_buf();
-
-            notes.push(Note {
-                path: rel_path,
-                filename,
-                title,
-            });
-        }
+                Some(Note {
+                    path: rel_path,
+                    filename,
+                    title,
+                })
+            })
+            .collect();
 
         notes.sort_by(|a, b| a.filename.cmp(&b.filename));
-
         Ok(notes)
     }
 }
@@ -144,9 +144,32 @@ impl Vault {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/// Validate that a path exists and is a directory.
+fn validate_dir(path: &Path, label: &str) -> Result<()> {
+    if !path.exists() {
+        bail!("{} does not exist: {}", label, path.display());
+    }
+    if !path.is_dir() {
+        bail!("{} is not a directory: {}", label, path.display());
+    }
+    Ok(())
+}
+
+/// Read directory with context about which path failed.
+fn read_dir(path: &Path) -> Result<fs::ReadDir> {
+    fs::read_dir(path).with_context(|| format!("Could not read directory: {}", path.display()))
+}
+
+/// Returns true if a directory name should be excluded from domains.
+/// Currently excludes hidden dirs (.) and utility dirs (_).
+/// TODO: Make this configurable via Config
+fn is_excluded_domain(name: &str) -> bool {
+    name.starts_with('.') || name.starts_with('_')
+}
+
 fn count_md_files(dir: &Path) -> Result<usize> {
     let mut count = 0;
-    for entry in fs::read_dir(dir).context("Could not read directory")? {
+    for entry in read_dir(dir)? {
         let entry = entry.context("Could not read entry")?;
         let path = entry.path();
         if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("md") {

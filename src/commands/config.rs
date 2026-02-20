@@ -14,20 +14,7 @@ pub fn handle_config() -> Result<()> {
         return Ok(());
     }
 
-    let config = Config::load()?;
-    println!("Config: {}", path.display());
-    println!("active_vault = {}", config.active_vault);
-    println!("\nVaults:");
-    for (name, vault_config) in &config.vaults {
-        let marker = if name == &config.active_vault {
-            " (active)"
-        } else {
-            ""
-        };
-        println!("  {} = {}{}", name, vault_config.path.display(), marker);
-    }
-
-    Ok(())
+    Config::load()?.print_summary()
 }
 
 pub fn handle_add(name: String, path: String) -> Result<()> {
@@ -61,15 +48,11 @@ pub fn handle_use(name: String) -> Result<()> {
     let mut config = Config::load()?;
 
     if !config.vaults.contains_key(&name) {
-        let available: Vec<&String> = config.vaults.keys().collect();
+        let available: Vec<_> = config.vaults.keys().map(|s| s.as_str()).collect();
         bail!(
             "Vault '{}' not found. Available vaults: {}",
             name,
-            available
-                .iter()
-                .map(|s| s.as_str())
-                .collect::<Vec<_>>()
-                .join(", ")
+            available.join(", ")
         );
     }
 
@@ -89,15 +72,7 @@ pub fn handle_vaults() -> Result<()> {
         return Ok(());
     }
 
-    println!("Configured vaults:");
-    for (name, vault_config) in &config.vaults {
-        let marker = if name == &config.active_vault {
-            " (active)"
-        } else {
-            ""
-        };
-        println!("  {}{} -> {}", name, marker, vault_config.path.display());
-    }
+    config.print_vaults();
 
     Ok(())
 }

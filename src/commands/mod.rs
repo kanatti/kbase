@@ -7,8 +7,10 @@ pub mod notes;
 pub mod read;
 pub mod tags;
 
+use crate::config::Config;
 use crate::vault::Vault;
 use anyhow::Result;
+use std::env;
 
 // Re-export the command enum
 pub use crate::Command;
@@ -17,18 +19,13 @@ pub use crate::Command;
 pub fn handle_command(command: Command) -> Result<()> {
     match command {
         Command::Config => config::handle_config(),
-
         Command::Add { name, path } => config::handle_add(name, path),
-
         Command::Use { name } => config::handle_use(name),
-
         Command::Vaults => config::handle_vaults(),
-
         Command::Domains { sort } => {
             let vault = open_vault()?;
             domains::handle_domains(&vault, sort)
         }
-
         Command::Notes {
             domain,
             term,
@@ -38,17 +35,14 @@ pub fn handle_command(command: Command) -> Result<()> {
             let vault = open_vault()?;
             notes::handle_notes(&vault, domain, term, tag, files)
         }
-
         Command::Read { path, outline } => {
             let vault = open_vault()?;
             read::handle_read(&vault, path, outline)
         }
-
         Command::Tags { sort } => {
             let vault = open_vault()?;
             tags::handle_tags(&vault, sort)
         }
-
         Command::Index { only } => {
             let vault = open_vault()?;
             index::handle_index(&vault, only)
@@ -58,10 +52,10 @@ pub fn handle_command(command: Command) -> Result<()> {
 
 /// Load vault from config file, with optional KB_VAULT override.
 fn open_vault() -> Result<Vault> {
-    let config = crate::config::Config::load()?;
+    let config = Config::load()?;
 
     // Check KB_VAULT environment variable first (vault name)
-    if let Ok(vault_name) = std::env::var("KB_VAULT") {
+    if let Ok(vault_name) = env::var("KB_VAULT") {
         if let Some(vault_config) = config.vaults.get(&vault_name) {
             return Vault::open(vault_config.path.clone(), vault_name);
         } else {

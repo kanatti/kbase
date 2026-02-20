@@ -1,5 +1,7 @@
-use crate::tags::TagIndex;
-use crate::vault::Vault;
+use crate::{
+    output,
+    vault::{Note, Vault},
+};
 use anyhow::Result;
 
 pub fn handle_notes(
@@ -40,41 +42,24 @@ pub fn handle_notes(
             println!("{}", note.path.display());
         }
     } else {
-        let max_name = notes
+        let rows: Vec<_> = notes
             .iter()
-            .map(|n| n.path.display().to_string().len())
-            .max()
-            .unwrap_or(0);
-
-        for note in &notes {
-            println!(
-                "{:<width$}  {}",
-                note.path.display(),
-                note.title,
-                width = max_name
-            );
-        }
+            .map(|n| (n.path.display().to_string(), n.title.clone()))
+            .collect();
+        
+        output::print_table(("Path", "Title"), &rows);
     }
 
     Ok(())
 }
 
 /// Get notes by tag using tag-first filtering approach
-fn get_notes_by_tag(
-    vault: &Vault,
-    tag: &str,
-    domain: Option<&str>,
-) -> Result<Vec<crate::vault::Note>> {
+fn get_notes_by_tag(vault: &Vault, tag: &str, domain: Option<&str>) -> Result<Vec<Note>> {
     // Load tag index
-    let index_dir = get_index_dir(vault)?;
-    let tags_json_path = index_dir.join("tags.json");
-
-    if !tags_json_path.exists() {
+    let Some(tag_index) = vault.load_tag_index()? else {
         eprintln!("No tag index found. Run `kb index` to build it first.");
         std::process::exit(1);
-    }
-
-    let tag_index = TagIndex::load_from_json(&tags_json_path)?;
+    };
 
     // Get paths for the tag
     let tagged_paths = tag_index.notes_with_tag(tag);
@@ -116,7 +101,7 @@ fn path_in_domain(path: &str, domain: &str) -> bool {
 }
 
 /// Convert a vault-relative path string to a Note struct
-fn path_to_note(vault: &Vault, path_str: &str) -> Result<crate::vault::Note> {
+fn path_to_note(vault: &Vault, path_str: &str) -> Result<Note> {
     use std::path::PathBuf;
 
     let full_path = vault.root.join(path_str);
@@ -139,7 +124,7 @@ fn path_to_note(vault: &Vault, path_str: &str) -> Result<crate::vault::Note> {
 
     let title = read_first_heading(&full_path).unwrap_or(stem);
 
-    Ok(crate::vault::Note {
+    Ok(Note {
         path: PathBuf::from(path_str),
         filename,
         title,
@@ -159,8 +144,4 @@ fn read_first_heading(path: &std::path::Path) -> Option<String> {
         }
     }
     None
-}
-
-fn get_index_dir(vault: &Vault) -> Result<std::path::PathBuf> {
-    Ok(crate::config::kb_home()?.join("indexes").join(&vault.name))
 }

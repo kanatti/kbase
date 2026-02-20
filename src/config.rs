@@ -5,6 +5,8 @@ use std::path::PathBuf;
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
 
+use crate::output;
+
 const DEFAULT_KB_HOME: &str = ".kb";
 const CONFIG_FILE: &str = "config.toml";
 
@@ -51,6 +53,33 @@ impl Config {
         fs::write(&path, contents).context("Could not write config file")?;
 
         Ok(())
+    }
+
+    /// Print a summary of the config.
+    pub fn print_summary(&self) -> Result<()> {
+        let path = config_path()?;
+        println!("Config: {}", path.display());
+        println!();
+        self.print_vaults();
+        Ok(())
+    }
+
+    /// Print all configured vaults.
+    pub fn print_vaults(&self) {
+        println!("Configured vaults:");
+
+        let rows: Vec<_> = self
+            .vaults
+            .iter()
+            .map(|(name, vault_config)| {
+                let marker = if name == &self.active_vault { "✔ " } else { "  " };
+                let left = format!("{}{}", marker, name);
+                let right = vault_config.path.display().to_string();
+                (left, right)
+            })
+            .collect();
+
+        output::print_table(("Vault", "Path"), &rows);
     }
 }
 

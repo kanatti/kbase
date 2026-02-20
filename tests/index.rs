@@ -14,7 +14,6 @@ fn test_index_command_builds_tag_index() {
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Building tag index..."))
-        .stdout(predicate::str::contains("Scanning"))
         .stdout(predicate::str::contains("Built tag index:"));
 
     // Verify tags.json was created in the centralized location

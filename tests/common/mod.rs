@@ -34,8 +34,6 @@ pub fn kb(tmp: &TempDir) -> Command {
 
 /// Set up a config file in the temp directory for the test vault.
 fn setup_vault_config(tmp: &TempDir) {
-    use std::fs;
-
     // Create the config directory
     let config_dir = tmp.path().join(".kb");
     fs::create_dir_all(&config_dir).unwrap();
