@@ -67,8 +67,8 @@ impl TagIndex {
         }
 
         // Atomic write: temp file -> rename
-        // json_path: ~/.kb/vault-name/tags.json (final destination)
-        // temp_path: ~/.kb/vault-name/tags.json.tmp (temporary write target)
+        // json_path: ~/.kbase/vault-name/tags.json (final destination)
+        // temp_path: ~/.kbase/vault-name/tags.json.tmp (temporary write target)
         let temp_path = json_path.with_extension("json.tmp");
         let file = File::create(&temp_path)?;
         serde_json::to_writer_pretty(file, &self.by_tag)?;
@@ -106,7 +106,7 @@ impl TagIndex {
 
     /// Filter tags to only include notes in the specified domains.
     /// Returns a new tag->paths mapping with domain filtering applied.
-    /// TODO: Use this in `kb tags --domain <domain>` command
+    /// TODO: Use this in `kbase tags --domain <domain>` command
     #[allow(dead_code)]
     pub fn filter_by_domains(&self, domains: &[String]) -> HashMap<String, Vec<String>> {
         let mut filtered = HashMap::new();

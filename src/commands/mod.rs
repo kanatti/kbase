@@ -50,12 +50,12 @@ pub fn handle_command(command: Command) -> Result<()> {
     }
 }
 
-/// Load vault from config file, with optional KB_VAULT override.
+/// Load vault from config file, with optional KBASE_VAULT override.
 fn open_vault() -> Result<Vault> {
     let config = Config::load()?;
 
-    // Check KB_VAULT environment variable first (vault name)
-    if let Ok(vault_name) = env::var("KB_VAULT") {
+    // Check KBASE_VAULT environment variable first (vault name)
+    if let Ok(vault_name) = env::var("KBASE_VAULT") {
         if let Some(vault_config) = config.vaults.get(&vault_name) {
             return Vault::open(vault_config.path.clone(), vault_name);
         } else {

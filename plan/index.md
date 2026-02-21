@@ -1,23 +1,23 @@
-# kb index
+# kbase index
 
-How `kb index` builds and stores the knowledge base index.
+How `kbase index` builds and stores the knowledge base index.
 
 ---
 
 ## Overview
 
-`kb index` does a single full-rebuild pass over every note in the vault.
+`kbase index` does a single full-rebuild pass over every note in the vault.
 No incremental updates — run it whenever the vault changes.
 
 ```bash
-kb index
+kbase index
 # Indexed 658 notes (lucene: 27, elasticsearch: 18, ...)
 ```
 
-Three structures are produced and saved under `~/.kb/<vault-name>/`:
+Three structures are produced and saved under `~/.kbase/<vault-name>/`:
 
 ```
-~/.kb/
+~/.kbase/
   config.toml
   personal/
     search.tantivy/   ← Tantivy full-text search index
@@ -30,7 +30,7 @@ Three structures are produced and saved under `~/.kb/<vault-name>/`:
 ```
 
 Each vault has its own isolated directory. The vault name comes from
-the `[vaults]` table in `~/.kb/config.toml`.
+the `[vaults]` table in `~/.kbase/config.toml`.
 
 Each structure is independent — search, tags, and links are separate use cases
 with different query patterns and different representations.
@@ -41,12 +41,12 @@ with different query patterns and different representations.
 
 ### Purpose
 
-Powers `kb notes --term <query>` with BM25-ranked full-text search.
+Powers `kbase notes --term <query>` with BM25-ranked full-text search.
 
 ### Location
 
 ```
-~/.kb/<vault-name>/search.tantivy/      ← Tantivy index directory
+~/.kbase/<vault-name>/search.tantivy/      ← Tantivy index directory
 ```
 
 ### Schema
@@ -66,20 +66,20 @@ Powers `kb notes --term <query>` with BM25-ranked full-text search.
 ### Query flow
 
 ```
-kb notes --term "BKD tree"
-  → open index at ~/.kb/index/
+kbase notes --term "BKD tree"
+  → open index at ~/.kbase/index/
   → query: title:"BKD tree"^2 OR content:"BKD tree"
   → collect top-N scored hits
   → return stored path + title fields
   → display ranked results (path column, title column)
 
-kb notes --term "BKD tree" --domain lucene
+kbase notes --term "BKD tree" --domain lucene
   → same query + domain:"lucene" filter
 ```
 
 ### In memory
 
-`tantivy::Index` opened read-only during search, write-only during `kb index`.
+`tantivy::Index` opened read-only during search, write-only during `kbase index`.
 No persistent in-memory state — index is opened per command invocation.
 
 ---
@@ -88,12 +88,12 @@ No persistent in-memory state — index is opened per command invocation.
 
 ### Purpose
 
-Powers `kb tags` (list all tags with counts) and `kb notes --tag <name>` (filter notes by tag).
+Powers `kbase tags` (list all tags with counts) and `kbase notes --tag <name>` (filter notes by tag).
 
 ### Location
 
 ```
-~/.kb/<vault-name>/tags.json
+~/.kbase/<vault-name>/tags.json
 ```
 
 ### On-disk format
@@ -148,13 +148,13 @@ Tags from frontmatter and body are merged per-note; duplicates are dropped.
 
 ### Purpose
 
-Powers `kb links <note>` (outgoing links), `kb backlinks <note>` (incoming links),
-`kb orphans` (no links in or out), `kb deadends` (links to non-existent notes).
+Powers `kbase links <note>` (outgoing links), `kbase backlinks <note>` (incoming links),
+`kbase orphans` (no links in or out), `kbase deadends` (links to non-existent notes).
 
 ### Location
 
 ```
-~/.kb/<vault-name>/links.json
+~/.kbase/<vault-name>/links.json
 ```
 
 ### On-disk format
@@ -202,15 +202,15 @@ Given a wikilink target `t` found in note `source`:
    - If exists → resolved. Done.
    - Try all domains: find any note whose stem matches `t`.
    - If exactly one match → resolved. Done.
-   - If multiple matches → ambiguous → unresolved (log a warning during `kb index`).
+   - If multiple matches → ambiguous → unresolved (log a warning during `kbase index`).
    - If no match → unresolved.
 
 **Unresolved links** are silently dropped from `links.json` but counted and
-reported at the end of `kb index`:
+reported at the end of `kbase index`:
 
 ```
 Indexed 658 notes
-  27 unresolved wikilinks (run `kb deadends` for details)
+  27 unresolved wikilinks (run `kbase deadends` for details)
 ```
 
 **Section links** (`[[note#section]]`) — the `#section` part is stripped before
@@ -220,7 +220,7 @@ resolution. Only the note target is recorded in the graph.
 
 ## Parsed Note (intermediate, not persisted)
 
-The parser produces this for each note during `kb index`. It is consumed
+The parser produces this for each note during `kbase index`. It is consumed
 immediately to feed the three structures above and is not saved to disk.
 
 ```rust
@@ -250,15 +250,15 @@ pub struct RawLink {
 ## Disk Layout Summary
 
 ```
-~/.kb/
+~/.kbase/
   config.toml
   personal/
     search.tantivy/       ← Tantivy manages this directory
       meta.json
       .managed.json
       <segment files>
-    tags.json             ← written atomically on each kb index run
-    links.json            ← written atomically on each kb index run
+    tags.json             ← written atomically on each kbase index run
+    links.json            ← written atomically on each kbase index run
   work/
     search.tantivy/
     tags.json
@@ -266,26 +266,26 @@ pub struct RawLink {
 ```
 
 Both JSON files are written atomically (write to `.tmp`, then rename)
-to avoid leaving partial files if `kb index` is interrupted.
+to avoid leaving partial files if `kbase index` is interrupted.
 
-The index directory for the active vault is: `~/.kb/<vault-name>/`
+The index directory for the active vault is: `~/.kbase/<vault-name>/`
 
-When `KB_VAULT` env var is set (path override, used in tests), the index
+When `KBASE_VAULT` env var is set (path override, used in tests), the index
 directory is derived by hashing the path:
-`~/.kb/_override_<hash>/` — isolated per path, never collides with named vaults.
+`~/.kbase/_override_<hash>/` — isolated per path, never collides with named vaults.
 
 ---
 
-## `kb index` Behavior
+## `kbase index` Behavior
 
 ```bash
-kb index              # index the default vault
-kb --vault work index # index a named vault
+kbase index              # index the default vault
+kbase --vault work index # index a named vault
 ```
 
-1. Resolve vault (KB_VAULT → --vault name → config default).
-2. Create `~/.kb/<name>/` if it does not exist.
-3. Walk all notes (same rules as `kb notes` — all domains, all `.md` files).
+1. Resolve vault (KBASE_VAULT → --vault name → config default).
+2. Create `~/.kbase/<name>/` if it does not exist.
+3. Walk all notes (same rules as `kbase notes` — all domains, all `.md` files).
 4. For each note: parse → feed parser output to Tantivy writer, tags accumulator, links accumulator.
 5. Commit Tantivy index.
 6. Write `tags.json` and `links.json` atomically.
@@ -293,7 +293,7 @@ kb --vault work index # index a named vault
 
 **If no vault is configured:**
 ```
-Error: no vaults configured. Run `kb add <name> <path>` to get started.
+Error: no vaults configured. Run `kbase add <name> <path>` to get started.
 ```
 
 **If index directory cannot be created:**
@@ -303,5 +303,5 @@ Error: could not create index directory: <path>: <os error>
 
 **If `--term` used without an index:**
 ```
-Error: no index found for this vault. Run `kb index` first.
+Error: no index found for this vault. Run `kbase index` first.
 ```

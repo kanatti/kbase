@@ -19,12 +19,12 @@ pub fn setup_vault() -> TempDir {
     tmp
 }
 
-/// Build a `kb` command with a properly configured vault in the temp directory.
-pub fn kb(tmp: &TempDir) -> Command {
-    let mut cmd = cargo_bin_cmd!("kb");
+/// Build a `kbase` command with a properly configured vault in the temp directory.
+pub fn kbase(tmp: &TempDir) -> Command {
+    let mut cmd = cargo_bin_cmd!("kbase");
 
-    // Set KB_HOME to point directly to the .kb dir inside the temp directory
-    cmd.env("KB_HOME", tmp.path().join(".kb"));
+    // Set KBASE_HOME to point directly to the .kbase dir inside the temp directory
+    cmd.env("KBASE_HOME", tmp.path().join(".kbase"));
 
     // Create a proper config file for the vault
     setup_vault_config(tmp);
@@ -35,7 +35,7 @@ pub fn kb(tmp: &TempDir) -> Command {
 /// Set up a config file in the temp directory for the test vault.
 fn setup_vault_config(tmp: &TempDir) {
     // Create the config directory
-    let config_dir = tmp.path().join(".kb");
+    let config_dir = tmp.path().join(".kbase");
     fs::create_dir_all(&config_dir).unwrap();
 
     // Create config.toml with proper vault configuration format

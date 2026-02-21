@@ -7,8 +7,8 @@ use std::fs;
 fn test_index_command_builds_tag_index() {
     let vault = common::setup_vault();
 
-    // Run kb index command using the fixture vault
-    let mut cmd = common::kb(&vault);
+    // Run kbase index command using the fixture vault
+    let mut cmd = common::kbase(&vault);
     cmd.arg("index");
 
     cmd.assert()
@@ -17,7 +17,7 @@ fn test_index_command_builds_tag_index() {
         .stdout(predicate::str::contains("Built tag index:"));
 
     // Verify tags.json was created in the centralized location
-    let tags_json_path = vault.path().join(".kb/test-vault/tags.json");
+    let tags_json_path = vault.path().join(".kbase/test-vault/tags.json");
     assert!(
         tags_json_path.exists(),
         "tags.json should be created at {}",
@@ -43,8 +43,8 @@ fn test_index_command_builds_tag_index() {
 fn test_index_command_with_only_tags_filter() {
     let vault = common::setup_vault();
 
-    // Run kb index --only tags
-    let mut cmd = common::kb(&vault);
+    // Run kbase index --only tags
+    let mut cmd = common::kbase(&vault);
     cmd.args(["index", "--only", "tags"]);
 
     cmd.assert()
@@ -57,13 +57,13 @@ fn test_index_command_with_only_tags_filter() {
 fn test_index_command_skips_code_block_tags() {
     let vault = common::setup_vault();
 
-    let mut cmd = common::kb(&vault);
+    let mut cmd = common::kbase(&vault);
     cmd.arg("index");
 
     cmd.assert().success();
 
     // Check tags.json in centralized location
-    let tags_json_path = vault.path().join(".kb/test-vault/tags.json");
+    let tags_json_path = vault.path().join(".kbase/test-vault/tags.json");
     let tags_content = fs::read_to_string(&tags_json_path).unwrap();
     let tags: serde_json::Value = serde_json::from_str(&tags_content).unwrap();
 
@@ -76,7 +76,7 @@ fn test_index_command_skips_code_block_tags() {
 fn test_index_command_invalid_only_option() {
     let vault = common::setup_vault();
 
-    let mut cmd = common::kb(&vault);
+    let mut cmd = common::kbase(&vault);
     cmd.args(["index", "--only", "invalid"]);
 
     cmd.assert()

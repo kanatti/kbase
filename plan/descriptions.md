@@ -1,6 +1,6 @@
 # Descriptions
 
-How `kb` extracts a short description for domains and notes, used in `kb ls`
+How `kbase` extracts a short description for domains and notes, used in `kbase ls`
 and anywhere a summary is needed.
 
 ---
@@ -99,22 +99,22 @@ fn extract_description(content: &str) -> Option<String> {
 
 ## When to implement
 
-This is not part of the initial `kb ls` (Step 2). It will be added when:
+This is not part of the initial `kbase ls` (Step 2). It will be added when:
 - The basic parser is in place (Step 7)
 - Or as a lightweight pre-Step-7 addition if descriptions are needed earlier
 
-The display in `kb ls` should degrade gracefully — if description is `None`,
+The display in `kbase ls` should degrade gracefully — if description is `None`,
 just show title and filename as today, no empty column.
 
 ---
 
 ## Display
 
-Descriptions are shown in `kb ls` by default, truncated to fit the terminal
+Descriptions are shown in `kbase ls` by default, truncated to fit the terminal
 width. A `--no-desc` flag hides them if the output is too wide.
 
 ```
-kb ls lucene              # shows filename + title + description (truncated)
-kb ls lucene --no-desc    # shows filename + title only (current behaviour)
-kb ls lucene --files      # shows filenames only (no title, no description)
+kbase ls lucene              # shows filename + title + description (truncated)
+kbase ls lucene --no-desc    # shows filename + title only (current behaviour)
+kbase ls lucene --files      # shows filenames only (no title, no description)
 ```

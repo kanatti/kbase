@@ -5,9 +5,9 @@ A **domain** is a top-level directory in the vault. Domains organize notes by to
 ## List domains
 
 ```bash
-kb domains                  # list all domains sorted by name
-kb domains --sort count     # sort by note count (descending)
-kb domains --sort name      # sort by name (explicit)
+kbase domains                  # list all domains sorted by name
+kbase domains --sort count     # sort by note count (descending)
+kbase domains --sort name      # sort by name (explicit)
 ```
 
 Shows a table with domain names and note counts:
@@ -72,6 +72,6 @@ elasticsearch/
 Many commands accept a `--domain` filter:
 
 ```bash
-kb notes --domain lucene           # list notes in a domain
-kb notes --tag deep-dive --domain lucene  # combine with tags
+kbase notes --domain lucene           # list notes in a domain
+kbase notes --tag deep-dive --domain lucene  # combine with tags
 ```

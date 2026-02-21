@@ -3,16 +3,16 @@ use assert_cmd::cargo::cargo_bin_cmd;
 use predicates::str::contains;
 use tempfile::TempDir;
 
-fn kb(tmp: &TempDir) -> Command {
-    let mut cmd = cargo_bin_cmd!("kb");
-    cmd.env("KB_HOME", tmp.path().join(".kb"));
+fn kbase(tmp: &TempDir) -> Command {
+    let mut cmd = cargo_bin_cmd!("kbase");
+    cmd.env("KBASE_HOME", tmp.path().join(".kbase"));
     cmd
 }
 
 #[test]
 fn config_show_no_config() {
     let tmp = TempDir::new().unwrap();
-    kb(&tmp)
+    kbase(&tmp)
         .arg("config")
         .assert()
         .success()
@@ -23,7 +23,7 @@ fn config_show_no_config() {
 fn add_vault() {
     let tmp = TempDir::new().unwrap();
 
-    kb(&tmp)
+    kbase(&tmp)
         .args(["add", "test-vault", tmp.path().to_str().unwrap()])
         .assert()
         .success()
@@ -35,13 +35,13 @@ fn config_show_after_add() {
     let tmp = TempDir::new().unwrap();
 
     // Add a vault first
-    kb(&tmp)
+    kbase(&tmp)
         .args(["add", "test-vault", tmp.path().to_str().unwrap()])
         .assert()
         .success();
 
     // Show config
-    kb(&tmp)
+    kbase(&tmp)
         .arg("config")
         .assert()
         .success()
@@ -54,7 +54,7 @@ fn use_vault_not_found() {
     let tmp = TempDir::new().unwrap();
 
     // Try to use vault that doesn't exist
-    kb(&tmp)
+    kbase(&tmp)
         .args(["use", "nonexistent"])
         .assert()
         .failure()
@@ -66,18 +66,18 @@ fn add_and_use_vault() {
     let tmp = TempDir::new().unwrap();
 
     // Add two vaults
-    kb(&tmp)
+    kbase(&tmp)
         .args(["add", "vault1", tmp.path().to_str().unwrap()])
         .assert()
         .success();
 
-    kb(&tmp)
+    kbase(&tmp)
         .args(["add", "vault2", tmp.path().to_str().unwrap()])
         .assert()
         .success();
 
     // Switch active vault
-    kb(&tmp)
+    kbase(&tmp)
         .args(["use", "vault2"])
         .assert()
         .success()
@@ -89,13 +89,13 @@ fn list_vaults() {
     let tmp = TempDir::new().unwrap();
 
     // Add a vault
-    kb(&tmp)
+    kbase(&tmp)
         .args(["add", "test-vault", tmp.path().to_str().unwrap()])
         .assert()
         .success();
 
     // List vaults
-    kb(&tmp)
+    kbase(&tmp)
         .args(["vaults"])
         .assert()
         .success()
@@ -104,44 +104,44 @@ fn list_vaults() {
 }
 
 #[test]
-fn kb_vault_env_var_override() {
+fn kbase_vault_env_var_override() {
     let tmp = TempDir::new().unwrap();
 
     // Add two vaults
-    kb(&tmp)
+    kbase(&tmp)
         .args(["add", "vault1", tmp.path().to_str().unwrap()])
         .assert()
         .success();
 
-    kb(&tmp)
+    kbase(&tmp)
         .args(["add", "vault2", tmp.path().to_str().unwrap()])
         .assert()
         .success();
 
     // Use vault1 as active
-    kb(&tmp).args(["use", "vault1"]).assert().success();
+    kbase(&tmp).args(["use", "vault1"]).assert().success();
 
-    // Override with KB_VAULT env var to use vault2 temporarily
-    kb(&tmp)
-        .env("KB_VAULT", "vault2")
+    // Override with KBASE_VAULT env var to use vault2 temporarily
+    kbase(&tmp)
+        .env("KBASE_VAULT", "vault2")
         .args(["domains"])
         .assert()
         .success();
 }
 
 #[test]
-fn kb_vault_env_var_invalid_vault() {
+fn kbase_vault_env_var_invalid_vault() {
     let tmp = TempDir::new().unwrap();
 
     // Add a vault
-    kb(&tmp)
+    kbase(&tmp)
         .args(["add", "test-vault", tmp.path().to_str().unwrap()])
         .assert()
         .success();
 
-    // Try to use nonexistent vault via KB_VAULT
-    kb(&tmp)
-        .env("KB_VAULT", "nonexistent")
+    // Try to use nonexistent vault via KBASE_VAULT
+    kbase(&tmp)
+        .env("KBASE_VAULT", "nonexistent")
         .args(["domains"])
         .assert()
         .failure()

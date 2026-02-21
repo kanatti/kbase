@@ -5,7 +5,7 @@ List and filter notes across the vault.
 ## List all notes
 
 ```bash
-kb notes                       # all notes in the vault
+kbase notes                       # all notes in the vault
 ```
 
 Shows a table with vault-relative paths and titles:
@@ -25,7 +25,7 @@ rust/ownership.md              ownership
 ## Filter by domain
 
 ```bash
-kb notes --domain lucene       # notes in a specific domain
+kbase notes --domain lucene       # notes in a specific domain
 ```
 
 Shows only notes within the specified domain folder.
@@ -36,23 +36,23 @@ Shows only notes within the specified domain folder.
 ## Filter by tag
 
 ```bash
-kb notes --tag deep-dive                    # notes with this tag
-kb notes --tag wip --domain lucene          # combine tag + domain
+kbase notes --tag deep-dive                    # notes with this tag
+kbase notes --tag wip --domain lucene          # combine tag + domain
 ```
 
-**Requires:** `kb index` must be run first to build the tag index.
+**Requires:** `kbase index` must be run first to build the tag index.
 
 **Errors:**
-- No index: `No tag index found. Run 'kb index' to build it first.`
+- No index: `No tag index found. Run 'kbase index' to build it first.`
 - Tag not found: `No notes with tag 'xyz'.`
 - No results: `No notes in domain 'lucene' with tag 'xyz'.`
 
 ## Show paths only
 
 ```bash
-kb notes --files                            # all notes, paths only
-kb notes --domain lucene --files            # domain filter, paths only
-kb notes --tag rust --files                 # tag filter, paths only
+kbase notes --files                            # all notes, paths only
+kbase notes --domain lucene --files            # domain filter, paths only
+kbase notes --tag rust --files                 # tag filter, paths only
 ```
 
 Outputs only vault-relative paths, one per line (no table, no titles):
@@ -68,7 +68,7 @@ Useful for piping to other tools.
 ## Full-text search (not yet implemented)
 
 ```bash
-kb notes --term "search flow"  # NOT IMPLEMENTED YET
+kbase notes --term "search flow"  # NOT IMPLEMENTED YET
 ```
 
 Shows error: `--term search is not yet implemented`

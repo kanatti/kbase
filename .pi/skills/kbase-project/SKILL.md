@@ -1,13 +1,14 @@
 ---
-name: kb-project
-description: Reference for working on the kb codebase — a personal knowledge base CLI in Rust. Use when building features, writing tests, reading architecture docs, or understanding the project structure.
+name: kbase-project
+description: Reference for working on the kbase codebase — a personal knowledge base CLI in Rust. Use when building features, writing tests, reading architecture docs, or understanding the project structure.
 ---
 
-# kb Project Reference
+# kbase Project Reference
 
 Personal knowledge base CLI in Rust. Navigates markdown vaults (Obsidian format).
 
-- **Repo:** `~/Code/kb`
+- **Repo:** `~/Code/kbase`
+- **Binary:** `kbase`
 - **Vault under development against:** `~/Documents/kanatti-notes` (658 notes, ~52 domains)
 
 ## Key Docs
@@ -37,27 +38,27 @@ src/
 ## Current Implementation Status
 
 Done:
-- Step 1: `kb config` / `kb config set vault <path>`
-- Step 2: `kb domains`, `kb notes`, `kb notes --domain <domain>`
+- Step 1: `kbase config` / `kbase config set vault <path>`
+- Step 2: `kbase domains`, `kbase notes`, `kbase notes --domain <domain>`
 
 Next:
-- Step 3: `kb read <domain>/<note>` — full path only, no ambiguity
-- Step 4: `kb outline <note>` — heading tree from a single file
-- Step 5: `kb notes --term` — ripgrep-backed content search
+- Step 3: `kbase read <domain>/<note>` — full path only, no ambiguity
+- Step 4: `kbase outline <note>` — heading tree from a single file
+- Step 5: `kbase notes --term` — ripgrep-backed content search
 
 See `docs/implementation.md` for full step list.
 
 ## Commands Implemented
 
 ```bash
-kb config                        # show config
-kb config set vault <path>       # set vault path
-kb domains                        # list domains with note counts
-kb domains --sort count           # sort by note count
-kb notes                         # list all notes
-kb notes --domain <domain>         # list notes in domain
-kb notes --files                 # filenames only
-kb notes --term <term>           # not yet implemented
+kbase config                        # show config
+kbase config set vault <path>       # set vault path
+kbase domains                        # list domains with note counts
+kbase domains --sort count           # sort by note count
+kbase notes                         # list all notes
+kbase notes --domain <domain>         # list notes in domain
+kbase notes --files                 # filenames only
+kbase notes --term <term>           # not yet implemented
 ```
 
 ## Architecture Decisions
@@ -78,7 +79,7 @@ cargo test domains         # run only domains tests
 ```
 
 Test isolation: each test copies `tests/fixtures/vault/` into a fresh `TempDir`.
-Shared helpers in `tests/common/mod.rs` — `setup_vault()`, `kb()`.
+Shared helpers in `tests/common/mod.rs` — `setup_vault()`, `kbase()`.
 
 Fixture vault layout:
 ```
@@ -89,23 +90,4 @@ tests/fixtures/vault/
   __templates/     (excluded)
   _logs/           (excluded)
   01-home.md       (root file, not a domain)
-```
-
-## Key Cargo Dependencies
-
-```toml
-clap        — CLI parsing (derive + env features)
-ignore      — vault file walking (gitignore-aware, same author as rg)
-walkdir     — directory traversal
-regex       — wikilink / tag / task parsing
-anyhow      — error handling
-toml        — config file parsing
-dirs        — home directory resolution
-shellexpand — ~ expansion in paths
-colored     — terminal output
-```
-
-Phase 2 (not yet added):
-```toml
-tantivy     — full-text search index (see docs/search.md)
 ```

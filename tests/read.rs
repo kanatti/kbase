@@ -1,5 +1,5 @@
 mod common;
-use common::{kb, setup_vault};
+use common::{kbase, setup_vault};
 
 // ---------------------------------------------------------------------------
 // kb read — raw content
@@ -8,7 +8,7 @@ use common::{kb, setup_vault};
 #[test]
 fn read_note_outputs_raw_content() {
     let tmp = setup_vault();
-    let output = kb(&tmp)
+    let output = kbase(&tmp)
         .args(["read", "lucene/search-flow.md"])
         .output()
         .unwrap();
@@ -24,7 +24,7 @@ fn read_note_outputs_raw_content() {
 #[test]
 fn read_root_level_note() {
     let tmp = setup_vault();
-    let output = kb(&tmp).args(["read", "01-home.md"]).output().unwrap();
+    let output = kbase(&tmp).args(["read", "01-home.md"]).output().unwrap();
 
     assert!(output.status.success(), "expected exit 0");
 
@@ -39,7 +39,7 @@ fn read_root_level_note() {
 #[test]
 fn read_outline_indents_by_level() {
     let tmp = setup_vault();
-    let output = kb(&tmp)
+    let output = kbase(&tmp)
         .args(["read", "lucene/search-flow.md", "--outline"])
         .output()
         .unwrap();
@@ -62,7 +62,7 @@ fn read_outline_indents_by_level() {
 #[test]
 fn read_outline_excludes_body_text() {
     let tmp = setup_vault();
-    let output = kb(&tmp)
+    let output = kbase(&tmp)
         .args(["read", "lucene/search-flow.md", "--outline"])
         .output()
         .unwrap();
@@ -82,7 +82,7 @@ fn read_outline_excludes_body_text() {
 #[test]
 fn read_missing_note_errors() {
     let tmp = setup_vault();
-    let output = kb(&tmp)
+    let output = kbase(&tmp)
         .args(["read", "lucene/nonexistent.md"])
         .output()
         .unwrap();
@@ -99,7 +99,7 @@ fn read_missing_note_errors() {
 #[test]
 fn read_wrong_domain_errors() {
     let tmp = setup_vault();
-    let output = kb(&tmp)
+    let output = kbase(&tmp)
         .args(["read", "no-such-domain/note.md"])
         .output()
         .unwrap();

@@ -5,12 +5,12 @@ Inline `#tags` for categorizing and discovering notes across your vault.
 ## Usage
 
 ```bash
-kb tags                                      # list all tags
-kb tags --sort count                         # sort by usage frequency
-kb notes --tag deep-dive                     # filter notes by tag
-kb notes --tag wip --domain lucene           # combine tag + domain filter
-kb index                                     # build tag index
-kb index --only tags                         # build only tag index
+kbase tags                                      # list all tags
+kbase tags --sort count                         # sort by usage frequency
+kbase notes --tag deep-dive                     # filter notes by tag
+kbase notes --tag wip --domain lucene           # combine tag + domain filter
+kbase index                                     # build tag index
+kbase index --only tags                         # build only tag index
 ```
 
 ## Tag Format
@@ -36,7 +36,7 @@ The #performance characteristics are...
 Tag index is stored as JSON at:
 
 ```
-~/.kb/<vault-name>/tags.json
+~/.kbase/<vault-name>/tags.json
 ```
 
 Format maps tag names to note paths:
@@ -55,14 +55,14 @@ Format maps tag names to note paths:
 
 ## Commands
 
-### `kb tags`
+### `kbase tags`
 
 List all tags with note counts.
 
 ```bash
-kb tags                          # alphabetical (default)
-kb tags --sort name              # alphabetical (explicit)
-kb tags --sort count             # by usage frequency
+kbase tags                          # alphabetical (default)
+kbase tags --sort name              # alphabetical (explicit)
+kbase tags --sort count             # by usage frequency
 ```
 
 Output:
@@ -74,43 +74,43 @@ performance  1
 wip          1
 ```
 
-### `kb notes --tag`
+### `kbase notes --tag`
 
 Filter notes by tag. Requires tag index to be built first.
 
 ```bash
-kb notes --tag deep-dive                      # all notes with this tag
-kb notes --tag deep-dive --domain lucene      # tag + domain filter
-kb notes --tag wip --files                    # show paths only
+kbase notes --tag deep-dive                      # all notes with this tag
+kbase notes --tag deep-dive --domain lucene      # tag + domain filter
+kbase notes --tag wip --files                    # show paths only
 ```
 
-Output matches `kb notes` format (table or paths).
+Output matches `kbase notes` format (table or paths).
 
-### `kb index`
+### `kbase index`
 
 Build tag index by scanning vault content.
 
 ```bash
-kb index                         # build all indexes (tags, links, search)
-kb index --only tags             # build only tag index
+kbase index                         # build all indexes (tags, links, search)
+kbase index --only tags             # build only tag index
 ```
 
 ## Error Messages
 
 **Missing index:**
 ```bash
-$ kb notes --tag deep-dive
-No tag index found. Run `kb index` to build it first.
+$ kbase notes --tag deep-dive
+No tag index found. Run `kbase index` to build it first.
 ```
 
 **Tag not found:**
 ```bash
-$ kb notes --tag nonexistent
+$ kbase notes --tag nonexistent
 No notes with tag 'nonexistent'.
 ```
 
 **Tag + domain no results:**
 ```bash
-$ kb notes --tag wip --domain rust
+$ kbase notes --tag wip --domain rust
 No notes in domain 'rust' with tag 'wip'.
 ```

@@ -1,10 +1,10 @@
 # Configuration
 
-kb stores configuration in a TOML file that tracks all your vaults and which one is currently active.
+kbase stores configuration in a TOML file that tracks all your vaults and which one is currently active.
 
 ## Location
 
-`~/.kb/config.toml` (or `$KB_HOME/config.toml`)
+`~/.kbase/config.toml` (or `$KBASE_HOME/config.toml`)
 
 ## Format
 
@@ -21,25 +21,25 @@ path = "/Users/you/Documents/work-notes"
 ## Commands
 
 ```bash
-kb config              # Show config and all vaults
-kb add <name> <path>   # Add a vault (path must exist, supports ~)
-kb use <name>          # Set active vault
-kb vaults              # List all vaults
+kbase config              # Show config and all vaults
+kbase add <name> <path>   # Add a vault (path must exist, supports ~)
+kbase use <name>          # Set active vault
+kbase vaults              # List all vaults
 ```
 
 The first vault added is automatically set as active.
 
 ## Environment Variables
 
-- `KB_HOME` - Override config directory (default: `~/.kb`)
-- `KB_VAULT` - Override active vault for a single command
+- `KBASE_HOME` - Override config directory (default: `~/.kbase`)
+- `KBASE_VAULT` - Override active vault for a single command
 
 ```bash
-KB_VAULT=work kb domains    # Use 'work' vault temporarily
+KBASE_VAULT=work kbase domains    # Use 'work' vault temporarily
 ```
 
 ## Index Storage
 
-Indexes are stored per-vault in `~/.kb/<vault-name>/`:
+Indexes are stored per-vault in `~/.kbase/<vault-name>/`:
 - `tags.json` - Tag index
 - `search.tantivy/` - Search index

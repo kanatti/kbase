@@ -1,10 +1,10 @@
-# kb - Knowledge Base CLI
+# kbase - Knowledge Base CLI
 
 Fast, tag-aware knowledge base for markdown vaults.
 
-## What is kb?
+## What is kbase?
 
-kb is a knowledge base that organizes markdown notes using domains and hashtags. Filter notes by domain (`rust/`, `docker/`) or tags (`#wip`, `#bug-fix`) to quickly find what you need.
+kbase is a knowledge base that organizes markdown notes using domains and hashtags. Filter notes by domain (`rust/`, `docker/`) or tags (`#wip`, `#bug-fix`) to quickly find what you need.
 
 ## Installation
 
@@ -15,51 +15,51 @@ cargo install --path .
 ## Setup
 
 ```bash
-kb add my-notes ~/notes     # Add vault
-kb use my-notes             # Set active vault  
-kb index                    # Build tag index
-kb notes --tag rust         # Start filtering
+kbase add my-notes ~/notes     # Add vault
+kbase use my-notes             # Set active vault  
+kbase index                    # Build tag index
+kbase notes --tag rust         # Start filtering
 ```
 
 ## Commands
 
 ```bash
 # Vault management
-kb config                   # Show configuration
-kb add name /path           # Add vault  
-kb use name                 # Switch vault
-kb vaults                   # List vaults
+kbase config                   # Show configuration
+kbase add name /path           # Add vault  
+kbase use name                 # Switch vault
+kbase vaults                   # List vaults
 
 # Note operations
-kb domains                  # List domains
-kb notes                    # List all notes
-kb notes --domain rust      # Filter by domain
-kb notes --tag wip          # Filter by tag
-kb notes --tag rust --files # Filenames only
-kb tags                     # List all tags
-kb read rust/basics.md      # View note
-kb index                    # Rebuild index
+kbase domains                  # List domains
+kbase notes                    # List all notes
+kbase notes --domain rust      # Filter by domain
+kbase notes --tag wip          # Filter by tag
+kbase notes --tag rust --files # Filenames only
+kbase tags                     # List all tags
+kbase read rust/basics.md      # View note
+kbase index                    # Rebuild index
 ```
 
 ## Temporary Vault Switching
 
-Use `KB_VAULT` to temporarily override the active vault:
+Use `KBASE_VAULT` to temporarily override the active vault:
 
 ```bash
 # Normal usage (uses active vault)
-kb notes --tag bug
+kbase notes --tag bug
 
 # Temporary switch by vault name  
-KB_VAULT=work kb notes --tag bug
-KB_VAULT=personal kb index
+KBASE_VAULT=work kbase notes --tag bug
+KBASE_VAULT=personal kbase index
 
 # Still permanent switching
-kb use work                 # Change active vault
+kbase use work                 # Change active vault
 ```
 
 ## Structure
 
-kb works with existing folder structures:
+kbase works with existing folder structures:
 
 ```
 vault/
@@ -85,9 +85,9 @@ Status: #wip
 Filter by tags:
 
 ```bash
-kb notes --tag rust         # All rust notes
-kb notes --tag wip          # Work-in-progress
-kb notes --domain rust --tag advanced  # Combine filters
+kbase notes --tag rust         # All rust notes
+kbase notes --tag wip          # Work-in-progress
+kbase notes --domain rust --tag advanced  # Combine filters
 ```
 
 ## License

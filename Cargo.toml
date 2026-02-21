@@ -1,12 +1,12 @@
 [package]
-name = "kb"
+name = "kbase"
 version = "0.1.0"
 edition = "2024"
 description = "Personal knowledge base CLI for markdown vaults"
-repository = "https://github.com/kanatti/kb"
+repository = "https://github.com/kanatti/kbase"
 
 [[bin]]
-name = "kb"
+name = "kbase"
 path = "src/main.rs"
 
 [dependencies]

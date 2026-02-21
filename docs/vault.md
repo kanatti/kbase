@@ -1,6 +1,6 @@
 # Vault
 
-A **vault** is a directory containing markdown notes organized into top-level domain folders. Each vault is configured in `~/.kb/config.toml` and can be accessed via `kb` commands.
+A **vault** is a directory containing markdown notes organized into top-level domain folders. Each vault is configured in `~/.kbase/config.toml` and can be accessed via `kbase` commands.
 
 ## Structure
 
@@ -34,8 +34,8 @@ kanatti-notes/              ← vault root
 A **domain** is a top-level directory in the vault. See [domains.md](domains.md) for details.
 
 ```bash
-kb domains                  # list all domains
-kb domains --sort count     # sort by note count
+kbase domains                  # list all domains
+kbase domains --sort count     # sort by note count
 ```
 
 ## Notes
@@ -43,9 +43,9 @@ kb domains --sort count     # sort by note count
 Individual markdown files are called **notes**. See [notes.md](notes.md) for details.
 
 ```bash
-kb notes                    # list all notes
-kb notes --domain lucene    # notes in a domain
-kb notes --tag deep-dive    # notes with a tag (requires index)
+kbase notes                    # list all notes
+kbase notes --domain lucene    # notes in a domain
+kbase notes --tag deep-dive    # notes with a tag (requires index)
 ```
 
 **Title extraction:**
@@ -58,19 +58,19 @@ kb notes --tag deep-dive    # notes with a tag (requires index)
 Vault indexes are stored separately from the vault content:
 
 ```
-~/.kb/
+~/.kbase/
 ├── config.toml
 └── <vault-name>/
     ├── tags.json           # tag → note paths mapping
     └── search.tantivy/     # future: full-text index
 ```
 
-Each vault has its own index directory. Indexes are built by `kb index` and used by tag-related commands.
+Each vault has its own index directory. Indexes are built by `kbase index` and used by tag-related commands.
 
 **Building the index:**
 
 ```bash
-kb index                    # scan vault and build indexes
+kbase index                    # scan vault and build indexes
 ```
 
-This creates/updates `tags.json` with mappings from tags to note paths. Required for `kb notes --tag` and `kb tags` commands.
+This creates/updates `tags.json` with mappings from tags to note paths. Required for `kbase notes --tag` and `kbase tags` commands.

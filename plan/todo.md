@@ -8,4 +8,4 @@
 
 ## tags
 
-- [ ] Implement `kb tags --domain <domain>` to filter tags by domain (uses `TagIndex::filter_by_domains()`)
+- [ ] Implement `kbase tags --domain <domain>` to filter tags by domain (uses `TagIndex::filter_by_domains()`)

@@ -5,8 +5,8 @@ Read a note's content to stdout.
 ## Usage
 
 ```bash
-kb read <path>            # print raw markdown content
-kb read <path> --outline  # print heading structure only
+kbase read <path>            # print raw markdown content
+kbase read <path> --outline  # print heading structure only
 ```
 
 ## Path Format
@@ -14,18 +14,18 @@ kb read <path> --outline  # print heading structure only
 Always a path relative to the vault root, with `.md` extension:
 
 ```bash
-kb read lucene/search-flow.md      # note inside a domain
-kb read 01-home.md                 # root-level note (no domain prefix)
+kbase read lucene/search-flow.md      # note inside a domain
+kbase read 01-home.md                 # root-level note (no domain prefix)
 ```
 
-The path format is the same as `kb notes` output — copy-paste directly:
+The path format is the same as `kbase notes` output — copy-paste directly:
 
 ```bash
-kb notes --domain lucene
+kbase notes --domain lucene
   lucene/01-home.md        Lucene
   lucene/search-flow.md    Search Flow Deep Dive
 
-kb read lucene/search-flow.md
+kbase read lucene/search-flow.md
 ```
 
 No short names, no fuzzy resolution. Full path, always unambiguous.
@@ -37,7 +37,7 @@ No short names, no fuzzy resolution. Full path, always unambiguous.
 Raw file content dumped to stdout. Nothing stripped or reformatted.
 
 ```bash
-kb read lucene/search-flow.md
+kbase read lucene/search-flow.md
 ```
 
 ```
@@ -56,7 +56,7 @@ Pipe through `bat` or `glow` for rendered output if needed.
 Prints the heading tree, indented by level:
 
 ```bash
-kb read lucene/search-flow.md --outline
+kbase read lucene/search-flow.md --outline
 ```
 
 ```
@@ -78,4 +78,4 @@ If the path does not exist relative to the vault root:
 Error: note not found: lucene/nonexistent.md
 ```
 
-No suggestions. Use `kb notes --domain lucene` to find the right path.
+No suggestions. Use `kbase notes --domain lucene` to find the right path.

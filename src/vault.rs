@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 
-use crate::config::kb_home;
+use crate::config::kbase_home;
 use crate::domains;
 use crate::tags::TagIndex;
 
@@ -36,7 +36,7 @@ impl Vault {
 
     /// Get the directory where indexes for this vault are stored.
     pub fn index_dir(&self) -> Result<PathBuf> {
-        Ok(kb_home()?.join(&self.name))
+        Ok(kbase_home()?.join(&self.name))
     }
 
     /// Load the tag index for this vault.

@@ -1,13 +1,13 @@
 mod common;
 
-use common::{kb, setup_vault};
+use common::{kbase, setup_vault};
 use predicates::str::contains;
 
 #[test]
 fn notes_lists_all_notes_without_domain() {
     let tmp = setup_vault();
 
-    kb(&tmp)
+    kbase(&tmp)
         .arg("notes")
         .assert()
         .success()
@@ -20,7 +20,7 @@ fn notes_lists_all_notes_without_domain() {
 fn notes_domain_filter_lists_notes_in_domain() {
     let tmp = setup_vault();
 
-    kb(&tmp)
+    kbase(&tmp)
         .args(["notes", "--domain", "lucene"])
         .assert()
         .success()
@@ -33,7 +33,7 @@ fn notes_domain_filter_lists_notes_in_domain() {
 fn notes_domain_filter_shows_titles() {
     let tmp = setup_vault();
 
-    kb(&tmp)
+    kbase(&tmp)
         .args(["notes", "--domain", "lucene"])
         .assert()
         .success()
@@ -45,7 +45,7 @@ fn notes_domain_filter_shows_titles() {
 fn notes_domain_filter_falls_back_to_stem_when_no_heading() {
     let tmp = setup_vault();
 
-    kb(&tmp)
+    kbase(&tmp)
         .args(["notes", "--domain", "lucene"])
         .assert()
         .success()
@@ -56,7 +56,7 @@ fn notes_domain_filter_falls_back_to_stem_when_no_heading() {
 fn notes_files_flag_hides_titles() {
     let tmp = setup_vault();
 
-    let out = kb(&tmp)
+    let out = kbase(&tmp)
         .args(["notes", "--domain", "lucene", "--files"])
         .assert()
         .success();
@@ -73,7 +73,7 @@ fn notes_files_flag_hides_titles() {
 fn notes_unknown_domain_gives_error() {
     let tmp = setup_vault();
 
-    kb(&tmp)
+    kbase(&tmp)
         .args(["notes", "--domain", "nonexistent"])
         .assert()
         .failure()
@@ -84,7 +84,7 @@ fn notes_unknown_domain_gives_error() {
 fn notes_term_not_yet_implemented() {
     let tmp = setup_vault();
 
-    kb(&tmp)
+    kbase(&tmp)
         .args(["notes", "--term", "search"])
         .assert()
         .failure()
@@ -100,11 +100,11 @@ fn notes_tag_requires_index() {
     let tmp = setup_vault();
 
     // Without building index first, --tag should fail
-    kb(&tmp)
+    kbase(&tmp)
         .args(["notes", "--tag", "rust"])
         .assert()
         .failure()
-        .stderr(contains("Run `kb index`"));
+        .stderr(contains("Run `kbase index`"));
 }
 
 #[test]
@@ -112,10 +112,10 @@ fn notes_tag_filter_shows_notes_with_tag() {
     let tmp = setup_vault();
 
     // Build the index first
-    kb(&tmp).arg("index").assert().success();
+    kbase(&tmp).arg("index").assert().success();
 
     // Test --tag filtering
-    kb(&tmp)
+    kbase(&tmp)
         .args(["notes", "--tag", "deep-dive"])
         .assert()
         .success()
@@ -128,10 +128,10 @@ fn notes_tag_filter_with_files_flag() {
     let tmp = setup_vault();
 
     // Build the index first
-    kb(&tmp).arg("index").assert().success();
+    kbase(&tmp).arg("index").assert().success();
 
     // Test --tag with --files
-    let out = kb(&tmp)
+    let out = kbase(&tmp)
         .args(["notes", "--tag", "wip", "--files"])
         .assert()
         .success();
@@ -150,10 +150,10 @@ fn notes_tag_and_domain_combination() {
     let tmp = setup_vault();
 
     // Build the index first
-    kb(&tmp).arg("index").assert().success();
+    kbase(&tmp).arg("index").assert().success();
 
     // Test --tag with --domain (should show only lucene notes with deep-dive tag)
-    let out = kb(&tmp)
+    let out = kbase(&tmp)
         .args(["notes", "--tag", "deep-dive", "--domain", "lucene"])
         .assert()
         .success();
@@ -168,10 +168,10 @@ fn notes_tag_not_found() {
     let tmp = setup_vault();
 
     // Build the index first
-    kb(&tmp).arg("index").assert().success();
+    kbase(&tmp).arg("index").assert().success();
 
     // Test nonexistent tag
-    kb(&tmp)
+    kbase(&tmp)
         .args(["notes", "--tag", "nonexistent-tag"])
         .assert()
         .success()
@@ -183,10 +183,10 @@ fn notes_tag_and_domain_no_results() {
     let tmp = setup_vault();
 
     // Build the index first
-    kb(&tmp).arg("index").assert().success();
+    kbase(&tmp).arg("index").assert().success();
 
     // Test combination that should yield no results
-    kb(&tmp)
+    kbase(&tmp)
         .args(["notes", "--tag", "rust", "--domain", "elasticsearch"])
         .assert()
         .success()

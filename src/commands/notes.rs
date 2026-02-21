@@ -57,7 +57,7 @@ pub fn handle_notes(
 fn get_notes_by_tag(vault: &Vault, tag: &str, domain: Option<&str>) -> Result<Vec<Note>> {
     // Load tag index
     let Some(tag_index) = vault.load_tag_index()? else {
-        eprintln!("No tag index found. Run `kb index` to build it first.");
+        eprintln!("No tag index found. Run `kbase index` to build it first.");
         std::process::exit(1);
     };
 

@@ -3,7 +3,7 @@ use anyhow::Result;
 
 pub fn handle_tags(vault: &Vault, sort: SortBy) -> Result<()> {
     let Some(tag_index) = vault.load_tag_index()? else {
-        println!("No tag index found. Run `kb index` to build it first.");
+        println!("No tag index found. Run `kbase index` to build it first.");
         return Ok(());
     };
 

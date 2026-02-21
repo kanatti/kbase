@@ -10,7 +10,7 @@ pub fn handle_config() -> Result<()> {
 
     if !path.exists() {
         println!("No config found.");
-        println!("Run `kb add <name> <path>` to add a vault.");
+        println!("Run `kbase add <name> <path>` to add a vault.");
         return Ok(());
     }
 
@@ -68,7 +68,7 @@ pub fn handle_vaults() -> Result<()> {
 
     if config.vaults.is_empty() {
         println!("No vaults configured.");
-        println!("Run `kb add <name> <path>` to add a vault.");
+        println!("Run `kbase add <name> <path>` to add a vault.");
         return Ok(());
     }
 

@@ -1,6 +1,6 @@
 # Parsing
 
-How `kb` extracts structured data from markdown notes.
+How `kbase` extracts structured data from markdown notes.
 
 ---
 
@@ -59,7 +59,7 @@ in a single unified grammar.
 - Proper CST — no ambiguity, no edge case surprises
 - Declarative queries instead of imperative regex matching
 - Incremental parsing — only re-parse changed parts of a file
-- Reusable — the grammar is a standalone project useful beyond `kb`
+- Reusable — the grammar is a standalone project useful beyond `kbase`
 
 ### Grammar Sketch
 
@@ -129,7 +129,7 @@ grammar.js
     ↓ tree-sitter generate
 src/parser.c   (generated C)
     ↓ build.rs (cc crate)
-compiled into kb binary
+compiled into kbase binary
 ```
 
 ### Separate Repo
@@ -137,7 +137,7 @@ compiled into kb binary
 The grammar should live as its own project — `tree-sitter-obsidian-md` — so it
 can be used by other tools (editors, language servers, other CLIs).
 
-`kb` would depend on it via Cargo:
+`kbase` would depend on it via Cargo:
 ```toml
 tree-sitter = "0.22"
 tree-sitter-obsidian-md = { git = "https://github.com/kanatti/tree-sitter-obsidian-md" }
@@ -147,7 +147,7 @@ tree-sitter-obsidian-md = { git = "https://github.com/kanatti/tree-sitter-obsidi
 
 - Significant upfront investment (grammar + build pipeline + queries)
 - Cleaner long-term, especially as parsing needs grow
-- Grammar is a reusable artifact beyond `kb`
+- Grammar is a reusable artifact beyond `kbase`
 - Requires learning tree-sitter grammar format
 
 ---

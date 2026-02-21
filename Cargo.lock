@@ -444,7 +444,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "kb"
+name = "kbase"
 version = "0.1.0"
 dependencies = [
  "anyhow",

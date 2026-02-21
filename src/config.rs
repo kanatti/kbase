@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::output;
 
-const DEFAULT_KB_HOME: &str = ".kb";
+const DEFAULT_KBASE_HOME: &str = ".kbase";
 const CONFIG_FILE: &str = "config.toml";
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -28,7 +28,7 @@ impl Config {
         let path = config_path()?;
 
         if !path.exists() {
-            bail!("No config found. Run `kb config add <name> <path>` to add a vault.");
+            bail!("No config found. Run `kbase config add <name> <path>` to add a vault.");
         }
 
         let contents = fs::read_to_string(&path).context("Could not read config file")?;
@@ -87,17 +87,17 @@ impl Config {
     }
 }
 
-/// Returns the kb home directory (~/.kb by default, or $KB_HOME if set).
-/// $KB_HOME points directly to the kb home dir (e.g. /tmp/test/.kb in tests).
-pub fn kb_home() -> Result<PathBuf> {
-    if let Ok(dir) = std::env::var("KB_HOME") {
+/// Returns the kbase home directory (~/.kbase by default, or $KBASE_HOME if set).
+/// $KBASE_HOME points directly to the kbase home dir (e.g. /tmp/test/.kbase in tests).
+pub fn kbase_home() -> Result<PathBuf> {
+    if let Ok(dir) = std::env::var("KBASE_HOME") {
         return Ok(PathBuf::from(dir));
     }
     let home = dirs::home_dir().context("Could not find home directory")?;
-    Ok(home.join(DEFAULT_KB_HOME))
+    Ok(home.join(DEFAULT_KBASE_HOME))
 }
 
-/// Returns the path to the config file (~/.kb/config.toml by default).
+/// Returns the path to the config file (~/.kbase/config.toml by default).
 pub fn config_path() -> Result<PathBuf> {
-    Ok(kb_home()?.join(CONFIG_FILE))
+    Ok(kbase_home()?.join(CONFIG_FILE))
 }

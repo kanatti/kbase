@@ -22,7 +22,11 @@ pub enum SortBy {
 }
 
 #[derive(Parser)]
-#[command(name = "kb", about = "Knowledge Base CLI for markdown vaults", version)]
+#[command(
+    name = "kbase",
+    about = "Knowledge Base CLI for markdown vaults",
+    version
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,

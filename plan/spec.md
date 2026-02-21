@@ -1,4 +1,4 @@
-# kb — Knowledge Base CLI Specification
+# kbase — Knowledge Base CLI Specification
 
 Personal knowledge base CLI for navigating, searching, and maintaining
 `~/Documents/kanatti-notes`. Built to work from any directory — inside a code
@@ -22,7 +22,7 @@ repo, a pi session, or standalone in the terminal.
    - [Research Mode](#research-mode)
    - [Reports & Stats](#reports--stats)
    - [Index Management](#index-management)
-6. [Pi Skill: kb-notes](#pi-skill-kb-notes)
+6. [Pi Skill: kbase-notes](#pi-skill-kbase-notes)
 7. [Installation](#installation)
 8. [Phase 2: SQLite FTS5](#phase-2-sqlite-fts5)
 
@@ -43,7 +43,7 @@ repo, a pi session, or standalone in the terminal.
 
 ## Vault Conventions
 
-`kb` is built around `~/Documents/kanatti-notes`. Understanding its structure
+`kbase` is built around `~/Documents/kanatti-notes`. Understanding its structure
 is required to implement correctly.
 
 ### Directory Layout
@@ -137,7 +137,7 @@ Most notes do NOT have YAML frontmatter — they use bold headers for metadata:
 **Alignment:** 🟢 Target employer
 ```
 
-Some notes may have frontmatter. `kb` should handle both patterns.
+Some notes may have frontmatter. `kbase` should handle both patterns.
 
 ### Excluded Paths
 
@@ -168,15 +168,15 @@ if ripgrep is not available with a performance warning.
 ### File Locations
 
 ```
-~/Documents/kanatti-notes/      # KB_ROOT — the vault
-~/Documents/kanatti-notes/.scripts/kb   # the script itself
-~/.kb/                          # kb state dir
-~/.kb/index.db                  # SQLite index (Phase 2)
-~/.kb/config.json               # config overrides
-~/bin/kb                        # symlink to .scripts/kb
+~/Documents/kanatti-notes/      # KBASE_ROOT — the vault
+~/Documents/kanatti-notes/.scripts/kbase   # the script itself
+~/.kbase/                          # kbase state dir
+~/.kbase/index.db                  # SQLite index (Phase 2)
+~/.kbase/config.json               # config overrides
+~/bin/kbase                        # symlink to .scripts/kbase
 ```
 
-### Config (`~/.kb/config.json`)
+### Config (`~/.kbase/config.json`)
 
 ```json
 {
@@ -198,7 +198,7 @@ All commands support:
 - `--json`: machine-readable JSON (for pi agent use and scripting)
 - `--quiet` / `-q`: minimal output, paths only
 
-The pi skill always calls `kb` with `--json` and parses the output.
+The pi skill always calls `kbase` with `--json` and parses the output.
 
 ---
 
@@ -255,14 +255,14 @@ These flags work on all commands:
 
 ### Navigation
 
-#### `kb domains`
+#### `kbase domains`
 
 List all domain folders with note counts.
 
 ```
-kb domains
-kb domains --sort count       # sort by note count descending
-kb domains --sort name        # sort alphabetically (default)
+kbase domains
+kbase domains --sort count       # sort by note count descending
+kbase domains --sort name        # sort alphabetically (default)
 ```
 
 Output:
@@ -279,15 +279,15 @@ Implementation: `os.scandir(vault)`, filter for directories not starting with
 
 ---
 
-#### `kb ls <domain>`
+#### `kbase ls <domain>`
 
 List notes in a domain folder with their first heading (or filename if no
 heading).
 
 ```
-kb ls lucene
-kb ls lucene elasticsearch          # list notes across multiple domains
-kb ls lucene --files                # filenames only, no heading preview
+kbase ls lucene
+kbase ls lucene elasticsearch          # list notes across multiple domains
+kbase ls lucene --files                # filenames only, no heading preview
 ```
 
 Output:
@@ -307,13 +307,13 @@ each file (first 5 lines only, fast).
 
 ---
 
-#### `kb outline <note>`
+#### `kbase outline <note>`
 
 Show the heading structure of a note as an indented tree.
 
 ```
-kb outline lucene/search-flow-deep-dive
-kb outline esql-analysis               # resolves by filename
+kbase outline lucene/search-flow-deep-dive
+kbase outline esql-analysis               # resolves by filename
 ```
 
 Output:
@@ -331,15 +331,15 @@ Implementation: regex `^(#{1,6})\s+(.+)` on each line, indent by heading level.
 
 ---
 
-#### `kb random [domain]`
+#### `kbase random [domain]`
 
 Print a random note from the vault or a specific domain. Useful for spaced
 review — surfacing notes you forgot about.
 
 ```
-kb random
-kb random lucene
-kb random --read             # also print the note content
+kbase random
+kbase random lucene
+kbase random --read             # also print the note content
 ```
 
 Output:
@@ -351,17 +351,17 @@ lucene/gcd-compression.md   GCD Compression
 
 ### Search
 
-#### `kb search <query>`
+#### `kbase search <query>`
 
 Full-text search across the vault using ripgrep.
 
 ```
-kb search "BKD tree"
-kb search "BKD tree" --domain lucene elasticsearch    # scoped to domains
-kb search "BKD tree" --matches                  # show matching lines
-kb search "BKD tree" --matches --context 2      # +2 lines of context
-kb search "phase:2" --matches                   # works for any pattern
-kb search "TODO\|FIXME" --matches               # regex
+kbase search "BKD tree"
+kbase search "BKD tree" --domain lucene elasticsearch    # scoped to domains
+kbase search "BKD tree" --matches                  # show matching lines
+kbase search "BKD tree" --matches --context 2      # +2 lines of context
+kbase search "phase:2" --matches                   # works for any pattern
+kbase search "TODO\|FIXME" --matches               # regex
 ```
 
 Output (default — file list):
@@ -416,15 +416,15 @@ All link graph commands build the in-memory graph on-the-fly. Graph build time
 is ~100-150ms for 658 files. Results are cached in the process for chained
 operations.
 
-#### `kb links <note>`
+#### `kbase links <note>`
 
 List all wikilinks going OUT of a note (outgoing links).
 
 ```
-kb links esql-analysis
-kb links elasticsearch/esql-analysis    # full path also works
-kb links esql-analysis --resolved       # only resolved links
-kb links esql-analysis --unresolved     # only broken links
+kbase links esql-analysis
+kbase links elasticsearch/esql-analysis    # full path also works
+kbase links esql-analysis --resolved       # only resolved links
+kbase links esql-analysis --unresolved     # only broken links
 ```
 
 Output:
@@ -439,13 +439,13 @@ Outgoing links from elasticsearch/esql-analysis.md (8 links):
 
 ---
 
-#### `kb backlinks <note>`
+#### `kbase backlinks <note>`
 
 List all notes that link TO this note (incoming links / backlinks).
 
 ```
-kb backlinks esql-analysis
-kb backlinks esql-analysis --counts     # include how many links per source
+kbase backlinks esql-analysis
+kbase backlinks esql-analysis --counts     # include how many links per source
 ```
 
 Output:
@@ -458,15 +458,15 @@ Backlinks to elasticsearch/esql-analysis.md (3 notes):
 
 ---
 
-#### `kb orphans`
+#### `kbase orphans`
 
 List notes with NO incoming links — nothing in the vault points to them.
 These are forgotten or isolated notes.
 
 ```
-kb orphans
-kb orphans --domain lucene               # only check within lucene domain
-kb orphans --total                 # count only
+kbase orphans
+kbase orphans --domain lucene               # only check within lucene domain
+kbase orphans --total                 # count only
 ```
 
 Output:
@@ -482,26 +482,26 @@ rust/unsafe-patterns.md
 
 ---
 
-#### `kb deadends`
+#### `kbase deadends`
 
 List notes with NO outgoing links — they link to nothing else.
 
 ```
-kb deadends
-kb deadends --domain elasticsearch
+kbase deadends
+kbase deadends --domain elasticsearch
 ```
 
 ---
 
-#### `kb unresolved`
+#### `kbase unresolved`
 
 List all broken wikilinks across the vault — links that point to notes that
 don't exist.
 
 ```
-kb unresolved
-kb unresolved --domain elasticsearch          # scoped to a domain
-kb unresolved --verbose                 # show source file for each broken link
+kbase unresolved
+kbase unresolved --domain elasticsearch          # scoped to a domain
+kbase unresolved --verbose                 # show source file for each broken link
 ```
 
 Output:
@@ -520,14 +520,14 @@ writing backlog.
 
 ### Tags
 
-#### `kb tags`
+#### `kbase tags`
 
 List all `#tags` across the vault with counts.
 
 ```
-kb tags
-kb tags --sort count               # sort by frequency (default: name)
-kb tags --domain lucene elasticsearch    # scoped to domains
+kbase tags
+kbase tags --sort count               # sort by frequency (default: name)
+kbase tags --domain lucene elasticsearch    # scoped to domains
 ```
 
 Output:
@@ -543,13 +543,13 @@ matches), collect and count.
 
 ---
 
-#### `kb tag <name>`
+#### `kbase tag <name>`
 
 List all notes that contain a specific tag.
 
 ```
-kb tag deep-dive                # # prefix optional
-kb tag #wip --verbose          # show matching line context
+kbase tag deep-dive                # # prefix optional
+kbase tag #wip --verbose          # show matching line context
 ```
 
 Output:
@@ -565,18 +565,18 @@ Notes tagged #deep-dive (12):
 
 ### Tasks
 
-#### `kb tasks`
+#### `kbase tasks`
 
 List tasks across the vault.
 
 ```
-kb tasks                          # all incomplete tasks in vault
-kb tasks --done                   # completed tasks
-kb tasks --all                    # both complete and incomplete
-kb tasks --domain elasticsearch         # scoped to a domain
-kb tasks --domain elasticsearch --file 03-task-board   # scoped to a file
-kb tasks --verbose                # grouped by file with line numbers
-kb tasks --total                  # count only
+kbase tasks                          # all incomplete tasks in vault
+kbase tasks --done                   # completed tasks
+kbase tasks --all                    # both complete and incomplete
+kbase tasks --domain elasticsearch         # scoped to a domain
+kbase tasks --domain elasticsearch --file 03-task-board   # scoped to a file
+kbase tasks --verbose                # grouped by file with line numbers
+kbase tasks --total                  # count only
 ```
 
 Output (default):
@@ -604,14 +604,14 @@ format output.
 
 ---
 
-#### `kb task done <ref>`
+#### `kbase task done <ref>`
 
 Mark a specific task as done. Ref format is `file:line`.
 
 ```
-kb task done elasticsearch/03-task-board:12
-kb task done 03-task-board:12              # filename resolved
-kb task done 03-task-board:12 --status=-   # set to [-] cancelled
+kbase task done elasticsearch/03-task-board:12
+kbase task done 03-task-board:12              # filename resolved
+kbase task done 03-task-board:12 --status=-   # set to [-] cancelled
 ```
 
 Implementation: read the file, replace `[ ]` with `[x]` on the given line,
@@ -621,14 +621,14 @@ write back. Check the line actually contains a task before modifying.
 
 ### Read & Write
 
-#### `kb read <note>`
+#### `kbase read <note>`
 
 Print note content to stdout.
 
 ```
-kb read esql-analysis
-kb read elasticsearch/esql-analysis     # full path also works
-kb read esql-analysis --outline         # print outline only (headings)
+kbase read esql-analysis
+kbase read elasticsearch/esql-analysis     # full path also works
+kbase read esql-analysis --outline         # print outline only (headings)
 ```
 
 Note resolution:
@@ -639,39 +639,39 @@ Note resolution:
 
 ---
 
-#### `kb open <note>`
+#### `kbase open <note>`
 
 Open a note in the configured editor (default: `$EDITOR`, fallback: `code`).
 
 ```
-kb open esql-analysis
-kb open esql-analysis --obsidian      # open via obsidian:// URI if available
+kbase open esql-analysis
+kbase open esql-analysis --obsidian      # open via obsidian:// URI if available
 ```
 
 ---
 
-#### `kb append <note> <content>`
+#### `kbase append <note> <content>`
 
 Append content to an existing note without opening it.
 
 ```
-kb append esql-analysis "## New Finding\n\nContent here"
-kb append esql-analysis --file patch.md     # append from file
+kbase append esql-analysis "## New Finding\n\nContent here"
+kbase append esql-analysis --file patch.md     # append from file
 ```
 
 Appends with a preceding blank line if the note doesn't end with one.
 
 ---
 
-#### `kb new <domain> <name>`
+#### `kbase new <domain> <name>`
 
 Create a new note in a domain folder.
 
 ```
-kb new lucene jump-tables-deep-dive
-kb new lucene jump-tables --content "# Jump Tables\n\n"
-kb new lucene jump-tables --template default
-kb new lucene jump-tables --open          # open after creating
+kbase new lucene jump-tables-deep-dive
+kbase new lucene jump-tables --content "# Jump Tables\n\n"
+kbase new lucene jump-tables --template default
+kbase new lucene jump-tables --open          # open after creating
 ```
 
 Default content if no `--content` or `--template`:
@@ -685,14 +685,14 @@ Templates are read from `__templates/` in the vault. Template name maps to
 
 ---
 
-#### `kb daily`
+#### `kbase daily`
 
 Show the path to today's daily log file.
 
 ```
-kb daily                    # print path
-kb daily --read             # print content
-kb daily --append "- [ ] Review BKD tree notes"
+kbase daily                    # print path
+kbase daily --read             # print content
+kbase daily --append "- [ ] Review BKD tree notes"
 ```
 
 Daily log path resolution: `_logs/YYYY-MM.md` based on current date.
@@ -701,14 +701,14 @@ Daily log path resolution: `_logs/YYYY-MM.md` based on current date.
 
 ### Research Mode
 
-#### `kb research <domain> [domain2 ...]`
+#### `kbase research <domain> [domain2 ...]`
 
 Multi-domain exploration mode. Combines listing and search across a set of
 related domains. Designed for deep-dive sessions that span multiple areas.
 
 ```
-kb research lucene datafusion arrow
-kb research elasticsearch lucene opensearch
+kbase research lucene datafusion arrow
+kbase research elasticsearch lucene opensearch
 ```
 
 Output:
@@ -748,7 +748,7 @@ Type a search query to search across these domains, or Ctrl+C to exit.
 ```
 
 After printing the overview, drops into an interactive search loop scoped to
-the selected domains. Each query runs `kb search <query> --domain <domains>` and prints
+the selected domains. Each query runs `kbase search <query> --domain <domains>` and prints
 results. Ctrl+C exits.
 
 If `--json` flag is passed, outputs the overview as JSON and exits immediately
@@ -758,13 +758,13 @@ If `--json` flag is passed, outputs the overview as JSON and exits immediately
 
 ### Reports & Stats
 
-#### `kb stats`
+#### `kbase stats`
 
 Vault statistics summary.
 
 ```
-kb stats
-kb stats --domain lucene           # stats for a single domain
+kbase stats
+kbase stats --domain lucene           # stats for a single domain
 ```
 
 Output:
@@ -788,14 +788,14 @@ Largest domains:
 
 ---
 
-#### `kb report`
+#### `kbase report`
 
 Generate a full vault health report. Combines orphans, dead ends, unresolved
 links, and idle notes into one output.
 
 ```
-kb report
-kb report --output report.md    # save to a markdown file
+kbase report
+kbase report --output report.md    # save to a markdown file
 ```
 
 Output:
@@ -830,46 +830,46 @@ IDLE NOTES (not modified in 90+ days, 34)
 
 ### Index Management
 
-#### `kb index`
+#### `kbase index`
 
 Build or refresh the SQLite FTS5 index. Phase 2 feature — no-op in Phase 1
 (prints "Index not implemented in Phase 1").
 
 ```
-kb index               # build or refresh
-kb index --rebuild     # force full rebuild
-kb index --status      # show index state (last built, note count)
+kbase index               # build or refresh
+kbase index --rebuild     # force full rebuild
+kbase index --status      # show index state (last built, note count)
 ```
 
 ---
 
-## Pi Skill: kb-notes
+## Pi Skill: kbase-notes
 
 ### Location
 
-`~/.pi/agent/skills/kb-notes/` — global skill, available in every pi session.
+`~/.pi/agent/skills/kbase-notes/` — global skill, available in every pi session.
 
 ### What the skill does
 
 Teaches the pi agent how to navigate and work with `kanatti-notes` during any
 session. When the agent is:
 - Exploring code in `~/Code/elasticsearch` → can pull relevant notes as context
-- Asked to "research how datafusion handles memory" → knows to use `kb research`
-- Writing new findings → knows to `kb append` or `kb new`
-- Asked about tasks → knows to use `kb tasks`
+- Asked to "research how datafusion handles memory" → knows to use `kbase research`
+- Writing new findings → knows to `kbase append` or `kbase new`
+- Asked about tasks → knows to use `kbase tasks`
 
 ### Skill file: `SKILL.md`
 
 ```markdown
 ---
-name: kb-notes
+name: kbase-notes
 description: Access and manage the kanatti-notes knowledge base. Use when the user asks to search, read, update, or navigate personal notes; when researching a technical domain and need context from prior notes; or when working in a code repo that has a related notes domain.
 ---
 
-# kb-notes — Knowledge Base Skill
+# kbase-notes — Knowledge Base Skill
 
 Personal knowledge base at ~/Documents/kanatti-notes. 658+ markdown notes
-organized by domain. Use `kb` CLI for all operations.
+organized by domain. Use `kbase` CLI for all operations.
 
 ## Key Conventions
 
@@ -882,9 +882,9 @@ organized by domain. Use `kb` CLI for all operations.
 ## Workflows
 
 ### Before starting research on a domain
-1. `kb read <domain>/01-home.md` — get the domain overview and current focus
-2. `kb ls <domain>` — see all notes in the domain
-3. `kb tasks --domain <domain>` — see open tasks
+1. `kbase read <domain>/01-home.md` — get the domain overview and current focus
+2. `kbase ls <domain>` — see all notes in the domain
+3. `kbase tasks --domain <domain>` — see open tasks
 
 ### When exploring a code repo
 Match the repo name to a domain:
@@ -892,35 +892,35 @@ Match the repo name to a domain:
 - ~/Code/lucene → domain: lucene
 - ~/Code/datafusion → domain: datafusion
 - ~/Code/arrow-rs → domain: arrow
-Run `kb read <domain>/01-home.md` to get context before diving into code.
+Run `kbase read <domain>/01-home.md` to get context before diving into code.
 
 ### Cross-domain research
-`kb research lucene datafusion arrow` — shows overview of all three domains,
+`kbase research lucene datafusion arrow` — shows overview of all three domains,
 cross-links between them, and drops into interactive search.
 Use `--json` for machine-readable output.
 
 ### Finding relevant notes
-`kb search "<query>" --matches` — full-text with context
-`kb search "<query>" --domain <domain>` — scoped to a domain
-`kb backlinks <note>` — find related notes that link here
+`kbase search "<query>" --matches` — full-text with context
+`kbase search "<query>" --domain <domain>` — scoped to a domain
+`kbase backlinks <note>` — find related notes that link here
 
 ### Adding new knowledge
-`kb append <note> "## New Finding\n\ncontent"` — add to existing note
-`kb new <domain> <name>` — create new note
+`kbase append <note> "## New Finding\n\ncontent"` — add to existing note
+`kbase new <domain> <name>` — create new note
 
 ## Common Commands
 
 \`\`\`bash
-kb domains                                # all domains with counts
-kb ls lucene                             # list notes in lucene
-kb read lucene/search-flow-deep-dive     # read a specific note
-kb search "columnar format" --matches    # full-text search
-kb search "hash join" --domain datafusion arrow --matches
-kb research lucene datafusion --json     # research session overview
-kb tasks --domain elasticsearch                # open tasks in a domain
-kb backlinks esql-analysis               # what links to this note
-kb orphans                               # forgotten notes
-kb report                                # full vault health check
+kbase domains                                # all domains with counts
+kbase ls lucene                             # list notes in lucene
+kbase read lucene/search-flow-deep-dive     # read a specific note
+kbase search "columnar format" --matches    # full-text search
+kbase search "hash join" --domain datafusion arrow --matches
+kbase research lucene datafusion --json     # research session overview
+kbase tasks --domain elasticsearch                # open tasks in a domain
+kbase backlinks esql-analysis               # what links to this note
+kbase orphans                               # forgotten notes
+kbase report                                # full vault health check
 \`\`\`
 ```
 
@@ -932,15 +932,15 @@ kb report                                # full vault health check
 
 ```bash
 mkdir -p ~/Documents/kanatti-notes/.scripts
-# Write kb script to ~/Documents/kanatti-notes/.scripts/kb
-chmod +x ~/Documents/kanatti-notes/.scripts/kb
+# Write kbase script to ~/Documents/kanatti-notes/.scripts/kbase
+chmod +x ~/Documents/kanatti-notes/.scripts/kbase
 ```
 
 ### Step 2: Add to PATH
 
 ```bash
 mkdir -p ~/bin
-ln -s ~/Documents/kanatti-notes/.scripts/kb ~/bin/kb
+ln -s ~/Documents/kanatti-notes/.scripts/kbase ~/bin/kbase
 # Ensure ~/bin is in PATH — add to ~/.zshrc if not:
 # export PATH="$HOME/bin:$PATH"
 ```
@@ -954,8 +954,8 @@ which rg || brew install ripgrep
 ### Step 4: Install the pi skill
 
 ```bash
-mkdir -p ~/.pi/agent/skills/kb-notes
-# Write SKILL.md to ~/.pi/agent/skills/kb-notes/SKILL.md
+mkdir -p ~/.pi/agent/skills/kbase-notes
+# Write SKILL.md to ~/.pi/agent/skills/kbase-notes/SKILL.md
 ```
 
 ### Step 5: Cross-repo symlinks (optional)
@@ -970,9 +970,9 @@ done
 
 Then from `~/Code/elasticsearch` you can do:
 ```bash
-kb read .notes/01-home.md
+kbase read .notes/01-home.md
 # or just:
-kb read elasticsearch/01-home      # always works from anywhere
+kbase read elasticsearch/01-home      # always works from anywhere
 ```
 
 ---
@@ -1032,8 +1032,8 @@ CREATE TABLE headings (
 ### Index Build
 
 ```bash
-kb index           # build from scratch or update changed files
-kb index --rebuild # force full rebuild
+kbase index           # build from scratch or update changed files
+kbase index --rebuild # force full rebuild
 ```
 
 Incremental update: compare `mtime` of each `.md` file against `notes.modified_at`.
@@ -1068,7 +1068,7 @@ Build in this order:
 6. **Link Graph** (`links`, `backlinks`, `orphans`, `deadends`, `unresolved`) — in-memory graph
 7. **Research** (`research`) — compose commands 1-6
 8. **Reports** (`stats`, `report`) — compose all above
-9. **Pi Skill** (`~/.pi/agent/skills/kb-notes/SKILL.md`)
-10. **Phase 2 index** (`kb index`) — SQLite FTS5
+9. **Pi Skill** (`~/.pi/agent/skills/kbase-notes/SKILL.md`)
+10. **Phase 2 index** (`kbase index`) — SQLite FTS5
 
 Each step is independently useful. Stop at any point.
