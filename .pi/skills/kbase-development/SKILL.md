@@ -1,9 +1,9 @@
 ---
-name: kbase-project
+name: kbase-development
 description: Reference for working on the kbase codebase — a personal knowledge base CLI in Rust. Use when building features, writing tests, reading architecture docs, or understanding the project structure.
 ---
 
-# kbase Project Reference
+# kbase Development Reference
 
 Personal knowledge base CLI in Rust. Navigates markdown vaults (Obsidian format).
 
@@ -53,13 +53,15 @@ See `docs/implementation.md` for full step list.
 ```bash
 kbase config                        # show config
 kbase config set vault <path>       # set vault path
-kbase domains                        # list domains with note counts
+kbase domains                        # list domains with note counts (recursive)
 kbase domains --sort count           # sort by note count
-kbase notes                         # list all notes
-kbase notes --domain <domain>         # list notes in domain
+kbase notes                         # list all notes (recursive)
+kbase notes --domain <domain>         # list notes in domain (includes subdirectories)
 kbase notes --files                 # filenames only
 kbase notes --term <term>           # not yet implemented
 ```
+
+**Note:** Domains are still top-level directories only, but note counts and listings include all nested subdirectories recursively.
 
 ## Architecture Decisions
 
@@ -84,10 +86,28 @@ Shared helpers in `tests/common/mod.rs` — `setup_vault()`, `kbase()`.
 Fixture vault layout:
 ```
 tests/fixtures/vault/
-  elasticsearch/   (2 notes)
-  lucene/          (3 notes)
+  elasticsearch/   (3 notes, includes esql/ subdir)
+  lucene/          (5 notes, includes indexing/ subdir)
   rust/            (1 note)
   __templates/     (excluded)
   _logs/           (excluded)
   01-home.md       (root file, not a domain)
 ```
+
+## Manual Testing Against Fixture
+
+When developing features, test the installed binary against the fixture vault before updating tests:
+
+```bash
+# Create isolated config in /tmp
+cd /tmp && rm -rf test-kbase && mkdir test-kbase
+
+# Add fixture vault
+KBASE_HOME=/tmp/test-kbase/.kbase kbase add test-vault /Users/balu/Code/kbase/tests/fixtures/vault
+
+# Test commands
+KBASE_HOME=/tmp/test-kbase/.kbase kbase domains
+KBASE_HOME=/tmp/test-kbase/.kbase kbase notes --domain lucene
+```
+
+This lets you see actual output and iterate quickly without `cargo test` rebuild cycles.
