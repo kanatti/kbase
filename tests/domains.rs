@@ -20,8 +20,8 @@ fn domains_lists_all() {
 
     let expected = "\
 Domain         Notes  Description
-elasticsearch  2      Distributed search and analytics engine built on top of Lucene.
-lucene         3      Core full-text search library internals and algorithms used by Elasticsearch and Solr.
+elasticsearch  3      Distributed search and analytics engine built on top of Lucene.
+lucene         5      Core full-text search library internals and algorithms used by Elasticsearch and Solr.
 rust           1      
 ";
 
@@ -45,12 +45,36 @@ fn domains_sorted_by_count() {
 
     let expected = "\
 Domain         Notes  Description
-lucene         3      Core full-text search library internals and algorithms used by Elasticsearch and Solr.
-elasticsearch  2      Distributed search and analytics engine built on top of Lucene.
+lucene         5      Core full-text search library internals and algorithms used by Elasticsearch and Solr.
+elasticsearch  3      Distributed search and analytics engine built on top of Lucene.
 rust           1      
 ";
 
     assert_eq!(output, expected);
+}
+
+#[test]
+fn domains_count_includes_nested_files() {
+    let tmp = setup_vault();
+
+    let output = String::from_utf8(
+        kbase(&tmp)
+            .args(["notes", "--domain", "lucene", "--files"])
+            .assert()
+            .success()
+            .get_output()
+            .stdout
+            .clone(),
+    )
+    .unwrap();
+
+    // Should include nested files from lucene/indexing/
+    assert!(output.contains("lucene/indexing/inverted-index.md"));
+    assert!(output.contains("lucene/indexing/segment-merging.md"));
+    
+    // Should also include top-level files
+    assert!(output.contains("lucene/search-flow.md"));
+    assert!(output.contains("lucene/codecs.md"));
 }
 
 #[test]

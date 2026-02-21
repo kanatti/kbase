@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
+use walkdir::WalkDir;
 
 use crate::config::kbase_home;
 use crate::domains;
@@ -112,30 +113,20 @@ impl Vault {
         Ok(all)
     }
 
-    /// List all .md notes in a named domain folder.
+    /// List all .md notes in a named domain folder (recursively includes subdirectories).
     pub fn notes_in_domain(&self, domain: &str) -> Result<Vec<Note>> {
         let domain_path = self.root.join(domain);
         validate_dir(&domain_path, &format!("Domain '{}'", domain))?;
 
-        let mut notes: Vec<Note> = read_dir(&domain_path)?
+        let mut notes: Vec<Note> = create_vault_walker(&domain_path)
             .filter_map(|entry| {
-                let entry = entry.ok()?;
                 let path = entry.path();
 
-                // Only .md files
-                if !path.is_file() {
-                    return None;
-                }
-                if path.extension()?.to_str()? != "md" {
+                if !is_valid_note(path) {
                     return None;
                 }
 
                 let filename = path.file_name()?.to_str()?.to_string();
-
-                // Skip metadata files
-                if is_metadata_file(&filename) {
-                    return None;
-                }
                 let stem = path.file_stem()?.to_str().unwrap_or(&filename).to_string();
                 let title = read_first_heading(&path).unwrap_or(stem);
                 let rel_path = path.strip_prefix(&self.root).unwrap_or(&path).to_path_buf();
@@ -156,6 +147,31 @@ impl Vault {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/// Create a recursive walker that skips excluded directories (_*, .*).
+fn create_vault_walker(dir: &Path) -> impl Iterator<Item = walkdir::DirEntry> {
+    WalkDir::new(dir)
+        .into_iter()
+        .filter_entry(|e| {
+            if !e.path().is_dir() {
+                return true;
+            }
+            e.file_name()
+                .to_str()
+                .map_or(true, |name| !is_excluded_domain(name))
+        })
+        .filter_map(|e| e.ok())
+}
+
+/// Check if a path is a valid markdown note (not metadata, is .md file).
+fn is_valid_note(path: &Path) -> bool {
+    path.is_file()
+        && path.extension().and_then(|e| e.to_str()) == Some("md")
+        && path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .map_or(false, |name| !is_metadata_file(name))
+}
 
 /// Validate that a path exists and is a directory.
 fn validate_dir(path: &Path, label: &str) -> Result<()> {
@@ -190,21 +206,9 @@ fn is_metadata_file(filename: &str) -> bool {
 }
 
 fn count_md_files(dir: &Path) -> Result<usize> {
-    let mut count = 0;
-    for entry in read_dir(dir)? {
-        let entry = entry.context("Could not read entry")?;
-        let path = entry.path();
-        if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("md") {
-            // Skip metadata files
-            if let Some(filename) = path.file_name().and_then(|n| n.to_str()) {
-                if is_metadata_file(filename) {
-                    continue;
-                }
-            }
-            count += 1;
-        }
-    }
-    Ok(count)
+    Ok(create_vault_walker(dir)
+        .filter(|entry| is_valid_note(entry.path()))
+        .count())
 }
 
 /// Read the first level-1 heading (`# Title`) from a file.
