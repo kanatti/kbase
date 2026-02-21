@@ -40,6 +40,6 @@ KB_VAULT=work kb domains    # Use 'work' vault temporarily
 
 ## Index Storage
 
-Indexes are stored per-vault in `~/.kb/indexes/<vault-name>/`:
+Indexes are stored per-vault in `~/.kb/<vault-name>/`:
 - `tags.json` - Tag index
-- `tantivy/` - Search index
+- `search.tantivy/` - Search index

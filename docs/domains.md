@@ -19,7 +19,24 @@ lucene           3
 rust             1
 ```
 
+If any domain has a description, the output includes a third column:
+
+```
+Domain           Notes  Description
+elasticsearch    2      Search and analytics engine
+lucene           3      Full-text search library
+rust             1      
+```
+
 If the vault has no domains, shows "No domains found in vault."
+
+## Domain descriptions
+
+Add a description to any domain by creating `_description.md` or `description.md` in the domain directory. Descriptions can be multi-line markdown.
+
+Priority order:
+1. `_description.md` (checked first)
+2. `description.md` (fallback)
 
 ## What counts as a domain
 

@@ -14,23 +14,22 @@ kb index
 # Indexed 658 notes (lucene: 27, elasticsearch: 18, ...)
 ```
 
-Three structures are produced and saved under `~/.kb/indexes/<vault-name>/`:
+Three structures are produced and saved under `~/.kb/<vault-name>/`:
 
 ```
 ~/.kb/
   config.toml
-  indexes/
-    personal/
-      search.tantivy/   ← Tantivy full-text search index
-      tags.json        ← tag → [note paths]  
-      links.json       ← note path → [resolved note paths]
-    work/
-      search.tantivy/
-      tags.json
-      links.json
+  personal/
+    search.tantivy/   ← Tantivy full-text search index
+    tags.json        ← tag → [note paths]  
+    links.json       ← note path → [resolved note paths]
+  work/
+    search.tantivy/
+    tags.json
+    links.json
 ```
 
-Each vault has its own isolated index directory. The vault name comes from
+Each vault has its own isolated directory. The vault name comes from
 the `[vaults]` table in `~/.kb/config.toml`.
 
 Each structure is independent — search, tags, and links are separate use cases
@@ -47,7 +46,7 @@ Powers `kb notes --term <query>` with BM25-ranked full-text search.
 ### Location
 
 ```
-~/.kb/indexes/<vault-name>/search.tantivy/      ← Tantivy index directory
+~/.kb/<vault-name>/search.tantivy/      ← Tantivy index directory
 ```
 
 ### Schema
@@ -94,7 +93,7 @@ Powers `kb tags` (list all tags with counts) and `kb notes --tag <name>` (filter
 ### Location
 
 ```
-~/.kb/indexes/<vault-name>/tags.json
+~/.kb/<vault-name>/tags.json
 ```
 
 ### On-disk format
@@ -155,7 +154,7 @@ Powers `kb links <note>` (outgoing links), `kb backlinks <note>` (incoming links
 ### Location
 
 ```
-~/.kb/links.json
+~/.kb/<vault-name>/links.json
 ```
 
 ### On-disk format
@@ -253,28 +252,27 @@ pub struct RawLink {
 ```
 ~/.kb/
   config.toml
-  vaults/
-    personal/
-      index/              ← Tantivy manages this directory
-        meta.json
-        .managed.json
-        <segment files>
-      tags.json           ← written atomically on each kb index run
-      links.json          ← written atomically on each kb index run
-    work/
-      index/
-      tags.json
-      links.json
+  personal/
+    search.tantivy/       ← Tantivy manages this directory
+      meta.json
+      .managed.json
+      <segment files>
+    tags.json             ← written atomically on each kb index run
+    links.json            ← written atomically on each kb index run
+  work/
+    search.tantivy/
+    tags.json
+    links.json
 ```
 
 Both JSON files are written atomically (write to `.tmp`, then rename)
 to avoid leaving partial files if `kb index` is interrupted.
 
-The index directory for the active vault is: `~/.kb/vaults/<vault-name>/`
+The index directory for the active vault is: `~/.kb/<vault-name>/`
 
 When `KB_VAULT` env var is set (path override, used in tests), the index
 directory is derived by hashing the path:
-`~/.kb/vaults/_override_<hash>/` — isolated per path, never collides with named vaults.
+`~/.kb/_override_<hash>/` — isolated per path, never collides with named vaults.
 
 ---
 
@@ -286,7 +284,7 @@ kb --vault work index # index a named vault
 ```
 
 1. Resolve vault (KB_VAULT → --vault name → config default).
-2. Create `~/.kb/vaults/<name>/` if it does not exist.
+2. Create `~/.kb/<name>/` if it does not exist.
 3. Walk all notes (same rules as `kb notes` — all domains, all `.md` files).
 4. For each note: parse → feed parser output to Tantivy writer, tags accumulator, links accumulator.
 5. Commit Tantivy index.

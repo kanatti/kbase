@@ -46,7 +46,7 @@ pub fn handle_notes(
             .iter()
             .map(|n| (n.path.display().to_string(), n.title.clone()))
             .collect();
-        
+
         output::print_table(("Path", "Title"), &rows);
     }
 

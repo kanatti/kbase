@@ -2,103 +2,55 @@ mod common;
 
 use assert_cmd::cargo::cargo_bin_cmd;
 use common::{kb, setup_vault};
-use predicates::prelude::PredicateBooleanExt;
-use predicates::str::contains;
 
 #[test]
-fn domains_lists_domain_dirs() {
+fn domains_lists_all() {
     let tmp = setup_vault();
 
-    kb(&tmp)
-        .arg("domains")
-        .assert()
-        .success()
-        .stdout(contains("elasticsearch"))
-        .stdout(contains("lucene"))
-        .stdout(contains("rust"));
-}
+    let output = String::from_utf8(
+        kb(&tmp)
+            .arg("domains")
+            .assert()
+            .success()
+            .get_output()
+            .stdout
+            .clone(),
+    )
+    .unwrap();
 
-#[test]
-fn domains_shows_note_counts() {
-    let tmp = setup_vault();
+    let expected = "\
+Domain         Notes  Description
+elasticsearch  2      Distributed search and analytics engine built on top of Lucene.
+lucene         3      Core full-text search library internals and algorithms used by Elasticsearch and Solr.
+rust           1      
+";
 
-    let out = kb(&tmp).arg("domains").assert().success();
-    let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
-
-    let es_line = stdout
-        .lines()
-        .find(|l| l.contains("elasticsearch"))
-        .unwrap();
-    assert!(
-        es_line.contains('2'),
-        "expected 2 notes for elasticsearch, got: {es_line}"
-    );
-
-    let lucene_line = stdout.lines().find(|l| l.contains("lucene")).unwrap();
-    assert!(
-        lucene_line.contains('3'),
-        "expected 3 notes for lucene, got: {lucene_line}"
-    );
-
-    let rust_line = stdout.lines().find(|l| l.contains("rust")).unwrap();
-    assert!(
-        rust_line.contains('1'),
-        "expected 1 note for rust, got: {rust_line}"
-    );
-}
-
-#[test]
-fn domains_excludes_underscore_dirs() {
-    let tmp = setup_vault();
-
-    kb(&tmp)
-        .arg("domains")
-        .assert()
-        .success()
-        .stdout(contains("__templates").not())
-        .stdout(contains("_logs").not());
-}
-
-#[test]
-fn domains_sorted_by_name_default() {
-    let tmp = setup_vault();
-
-    let out = kb(&tmp).arg("domains").assert().success();
-    let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
-    let names: Vec<&str> = stdout
-        .lines()
-        .map(|l| l.trim().split_whitespace().next().unwrap_or(""))
-        .filter(|s| !s.is_empty())
-        .collect();
-
-    let mut sorted = names.clone();
-    sorted.sort();
-    assert_eq!(names, sorted, "domains should be sorted alphabetically");
+    assert_eq!(output, expected);
 }
 
 #[test]
 fn domains_sorted_by_count() {
     let tmp = setup_vault();
 
-    let out = kb(&tmp)
-        .args(["domains", "--sort", "count"])
-        .assert()
-        .success();
-    let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
+    let output = String::from_utf8(
+        kb(&tmp)
+            .args(["domains", "--sort", "count"])
+            .assert()
+            .success()
+            .get_output()
+            .stdout
+            .clone(),
+    )
+    .unwrap();
 
-    // lucene (3) > elasticsearch (2) > rust (1)
-    let lucene_pos = stdout.find("lucene").unwrap();
-    let es_pos = stdout.find("elasticsearch").unwrap();
-    let rust_pos = stdout.find("rust").unwrap();
+    let expected = "\
+Domain         Notes  Description
+lucene         3      Core full-text search library internals and algorithms used by Elasticsearch and Solr.
+elasticsearch  2      Distributed search and analytics engine built on top of Lucene.
+rust           1      
+";
 
-    assert!(
-        lucene_pos < es_pos,
-        "lucene (3) should come before elasticsearch (2)"
-    );
-    assert!(
-        es_pos < rust_pos,
-        "elasticsearch (2) should come before rust (1)"
-    );
+    assert_eq!(output, expected);
 }
 
 #[test]
@@ -108,8 +60,11 @@ fn domains_no_vault_shows_error() {
     cmd.env("KB_HOME", tmp.path().join(".kb"));
     cmd.env_remove("KB_VAULT");
 
-    cmd.arg("domains")
-        .assert()
-        .failure()
-        .stderr(contains("Error"));
+    let output = cmd.arg("domains").output().unwrap();
+
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert_eq!(
+        stderr,
+        "Error: No config found. Run `kb config add <name> <path>` to add a vault.\n"
+    );
 }

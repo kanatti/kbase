@@ -60,10 +60,9 @@ Vault indexes are stored separately from the vault content:
 ```
 ~/.kb/
 ├── config.toml
-└── indexes/
-    └── <vault-name>/
-        ├── tags.json           # tag → note paths mapping
-        └── search.tantivy/     # future: full-text index
+└── <vault-name>/
+    ├── tags.json           # tag → note paths mapping
+    └── search.tantivy/     # future: full-text index
 ```
 
 Each vault has its own index directory. Indexes are built by `kb index` and used by tag-related commands.

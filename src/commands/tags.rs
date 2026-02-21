@@ -1,4 +1,4 @@
-use crate::{output, SortBy, vault::Vault};
+use crate::{SortBy, output, vault::Vault};
 use anyhow::Result;
 
 pub fn handle_tags(vault: &Vault, sort: SortBy) -> Result<()> {

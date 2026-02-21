@@ -72,7 +72,11 @@ impl Config {
             .vaults
             .iter()
             .map(|(name, vault_config)| {
-                let marker = if name == &self.active_vault { "✔ " } else { "  " };
+                let marker = if name == &self.active_vault {
+                    "✔ "
+                } else {
+                    "  "
+                };
                 let left = format!("{}{}", marker, name);
                 let right = vault_config.path.display().to_string();
                 (left, right)

@@ -36,7 +36,7 @@ The #performance characteristics are...
 Tag index is stored as JSON at:
 
 ```
-~/.kb/indexes/<vault-name>/tags.json
+~/.kb/<vault-name>/tags.json
 ```
 
 Format maps tag names to note paths:

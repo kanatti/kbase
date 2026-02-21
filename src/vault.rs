@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, bail};
 
 use crate::config::kb_home;
+use crate::domains;
 use crate::tags::TagIndex;
 
 /// An open markdown vault rooted at a filesystem path.
@@ -35,7 +36,7 @@ impl Vault {
 
     /// Get the directory where indexes for this vault are stored.
     pub fn index_dir(&self) -> Result<PathBuf> {
-        Ok(kb_home()?.join("indexes").join(&self.name))
+        Ok(kb_home()?.join(&self.name))
     }
 
     /// Load the tag index for this vault.
@@ -52,6 +53,13 @@ impl Vault {
     pub fn save_tag_index(&self, index: &TagIndex) -> Result<()> {
         let path = self.index_dir()?.join("tags.json");
         index.save_to_json(&path)
+    }
+
+    /// Get the description for a domain by reading its description files.
+    /// Returns None if no description file exists.
+    pub fn domain_description(&self, domain_name: &str) -> Option<String> {
+        let domain_path = self.root.join(domain_name);
+        domains::extract_description(&domain_path)
     }
 
     /// List all domain folders (top-level dirs, excluding those starting with `_` or `.`).
@@ -123,6 +131,11 @@ impl Vault {
                 }
 
                 let filename = path.file_name()?.to_str()?.to_string();
+
+                // Skip metadata files
+                if is_metadata_file(&filename) {
+                    return None;
+                }
                 let stem = path.file_stem()?.to_str().unwrap_or(&filename).to_string();
                 let title = read_first_heading(&path).unwrap_or(stem);
                 let rel_path = path.strip_prefix(&self.root).unwrap_or(&path).to_path_buf();
@@ -167,12 +180,27 @@ fn is_excluded_domain(name: &str) -> bool {
     name.starts_with('.') || name.starts_with('_')
 }
 
+/// Returns true if a file is a metadata/description file and should not be counted as a note.
+/// Metadata files: _description.md, description.md, or files starting with _ or .
+fn is_metadata_file(filename: &str) -> bool {
+    if filename.starts_with('.') || filename.starts_with('_') {
+        return true;
+    }
+    matches!(filename, "description.md")
+}
+
 fn count_md_files(dir: &Path) -> Result<usize> {
     let mut count = 0;
     for entry in read_dir(dir)? {
         let entry = entry.context("Could not read entry")?;
         let path = entry.path();
         if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("md") {
+            // Skip metadata files
+            if let Some(filename) = path.file_name().and_then(|n| n.to_str()) {
+                if is_metadata_file(filename) {
+                    continue;
+                }
+            }
             count += 1;
         }
     }

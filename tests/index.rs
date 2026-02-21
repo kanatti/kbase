@@ -17,7 +17,7 @@ fn test_index_command_builds_tag_index() {
         .stdout(predicate::str::contains("Built tag index:"));
 
     // Verify tags.json was created in the centralized location
-    let tags_json_path = vault.path().join(".kb/indexes/test-vault/tags.json");
+    let tags_json_path = vault.path().join(".kb/test-vault/tags.json");
     assert!(
         tags_json_path.exists(),
         "tags.json should be created at {}",
@@ -63,7 +63,7 @@ fn test_index_command_skips_code_block_tags() {
     cmd.assert().success();
 
     // Check tags.json in centralized location
-    let tags_json_path = vault.path().join(".kb/indexes/test-vault/tags.json");
+    let tags_json_path = vault.path().join(".kb/test-vault/tags.json");
     let tags_content = fs::read_to_string(&tags_json_path).unwrap();
     let tags: serde_json::Value = serde_json::from_str(&tags_content).unwrap();
 

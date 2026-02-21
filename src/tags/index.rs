@@ -67,8 +67,8 @@ impl TagIndex {
         }
 
         // Atomic write: temp file -> rename
-        // json_path: ~/.kb/indexes/vault-name/tags.json (final destination)
-        // temp_path: ~/.kb/indexes/vault-name/tags.json.tmp (temporary write target)
+        // json_path: ~/.kb/vault-name/tags.json (final destination)
+        // temp_path: ~/.kb/vault-name/tags.json.tmp (temporary write target)
         let temp_path = json_path.with_extension("json.tmp");
         let file = File::create(&temp_path)?;
         serde_json::to_writer_pretty(file, &self.by_tag)?;

@@ -1,5 +1,6 @@
 mod commands;
 mod config;
+mod domains;
 mod output;
 mod tags;
 mod vault;
