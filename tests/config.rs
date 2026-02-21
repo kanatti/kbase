@@ -45,8 +45,7 @@ fn config_show_after_add() {
         .arg("config")
         .assert()
         .success()
-        .stdout(contains("✔ test-vault"))
-        .stdout(contains("Configured vaults:"));
+        .stdout(contains("✔ test-vault"));
 }
 
 #[test]

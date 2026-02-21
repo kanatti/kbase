@@ -66,8 +66,6 @@ impl Config {
 
     /// Print all configured vaults.
     pub fn print_vaults(&self) {
-        println!("Configured vaults:");
-
         let rows: Vec<_> = self
             .vaults
             .iter()
