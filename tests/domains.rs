@@ -71,7 +71,7 @@ fn domains_count_includes_nested_files() {
     // Should include nested files from lucene/indexing/
     assert!(output.contains("lucene/indexing/inverted-index.md"));
     assert!(output.contains("lucene/indexing/segment-merging.md"));
-    
+
     // Should also include top-level files
     assert!(output.contains("lucene/search-flow.md"));
     assert!(output.contains("lucene/codecs.md"));

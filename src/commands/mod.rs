@@ -35,9 +35,13 @@ pub fn handle_command(command: Command) -> Result<()> {
             let vault = open_vault()?;
             notes::handle_notes(&vault, domain, term, tag, files)
         }
-        Command::Read { path, outline } => {
+        Command::Read {
+            path,
+            outline,
+            line_numbers,
+        } => {
             let vault = open_vault()?;
-            read::handle_read(&vault, path, outline)
+            read::handle_read(&vault, path, outline, line_numbers)
         }
         Command::Tags { sort } => {
             let vault = open_vault()?;

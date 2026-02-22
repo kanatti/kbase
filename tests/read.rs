@@ -2,6 +2,40 @@ mod common;
 use common::{kbase, setup_vault};
 
 // ---------------------------------------------------------------------------
+// Expected outputs (constants for reuse)
+// ---------------------------------------------------------------------------
+
+const EXPECTED_READ_WITH_LINE_NUMBERS: &str = r#"     1	# Search Flow Deep Dive
+     2	
+     3	How TermQuery flows through IndexSearcher, Weight, Scorer and into TopDocs.
+     4	
+     5	This is a #deep-dive into #lucene #indexing and #performance optimization.
+     6	
+     7	## Phase 1: IndexSearcher.search()
+     8	
+     9	Entry point for all searches in Lucene. This covers #search-internals.
+    10	
+    11	### Step 1: createWeight()
+    12	
+    13	Weight wraps the query for reuse across segments.
+    14	
+    15	### Step 2: BulkScorer
+    16	
+    17	Scores documents in bulk for a segment.
+    18	
+    19	## Phase 2: Scoring
+    20	
+    21	Final BM25 scoring and TopDocs collection. The #scoring algorithm is #wip.
+"#;
+
+const EXPECTED_OUTLINE_WITH_LINE_NUMBERS: &str = r#"     1	# Search Flow Deep Dive
+     7	  ## Phase 1: IndexSearcher.search()
+    11	    ### Step 1: createWeight()
+    15	    ### Step 2: BulkScorer
+    19	  ## Phase 2: Scoring
+"#;
+
+// ---------------------------------------------------------------------------
 // kb read — raw content
 // ---------------------------------------------------------------------------
 
@@ -73,6 +107,71 @@ fn read_outline_excludes_body_text() {
     // Body prose should not appear
     assert!(!stdout.contains("How TermQuery flows"));
     assert!(!stdout.contains("Entry point for all searches"));
+}
+
+// ---------------------------------------------------------------------------
+// kb read -n / --line-numbers
+// ---------------------------------------------------------------------------
+
+#[test]
+fn read_with_line_numbers_short_form() {
+    let tmp = setup_vault();
+    let output = kbase(&tmp)
+        .args(["read", "lucene/search-flow.md", "-n"])
+        .output()
+        .unwrap();
+
+    assert!(output.status.success(), "expected exit 0");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_eq!(stdout, EXPECTED_READ_WITH_LINE_NUMBERS);
+}
+
+#[test]
+fn read_with_line_numbers_long_form() {
+    let tmp = setup_vault();
+    let output = kbase(&tmp)
+        .args(["read", "lucene/search-flow.md", "--line-numbers"])
+        .output()
+        .unwrap();
+
+    assert!(output.status.success(), "expected exit 0");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_eq!(stdout, EXPECTED_READ_WITH_LINE_NUMBERS);
+}
+
+#[test]
+fn read_outline_with_line_numbers_short_form() {
+    let tmp = setup_vault();
+    let output = kbase(&tmp)
+        .args(["read", "lucene/search-flow.md", "--outline", "-n"])
+        .output()
+        .unwrap();
+
+    assert!(output.status.success(), "expected exit 0");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_eq!(stdout, EXPECTED_OUTLINE_WITH_LINE_NUMBERS);
+}
+
+#[test]
+fn read_outline_with_line_numbers_long_form() {
+    let tmp = setup_vault();
+    let output = kbase(&tmp)
+        .args([
+            "read",
+            "lucene/search-flow.md",
+            "--outline",
+            "--line-numbers",
+        ])
+        .output()
+        .unwrap();
+
+    assert!(output.status.success(), "expected exit 0");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_eq!(stdout, EXPECTED_OUTLINE_WITH_LINE_NUMBERS);
 }
 
 // ---------------------------------------------------------------------------

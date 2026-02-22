@@ -80,6 +80,10 @@ pub enum Command {
         /// Print heading outline only, indented by level
         #[arg(long)]
         outline: bool,
+
+        /// Show line numbers (cat -n style)
+        #[arg(short = 'n', long = "line-numbers")]
+        line_numbers: bool,
     },
 
     /// List all tags
