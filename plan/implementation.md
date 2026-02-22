@@ -74,17 +74,16 @@ Changed `Config` to use `active_vault + HashMap<name, VaultConfig>`.
 Added `kbase add <name> <path>`, `kbase use <name>`, `kbase vaults`.  
 First vault added becomes active automatically.
 
-**Step 5 — Parser (`src/parser.rs`)**  
-Parse a single note into `ParsedNote`:
-- YAML frontmatter (`tags:` field)
+**Step 5 — Parser (`src/parser/`)** ✅ **DONE - Using Tree-sitter**  
+Parse a single note into `ParsedMarkdown`:
 - First `# Heading` → title
 - All headings → `Vec<Heading>`
-- Inline `#tags` via regex
-- Wikilinks `[[target]]` / `[[target|alias]]` via regex
-- Full body text for Tantivy
+- Inline `#tags` via tree-sitter queries
+- Wikilinks `[[target]]` / `[[target|alias]]` via tree-sitter queries
+- Full body text
 
-Uses pulldown-cmark for headings + regex for Obsidian-specific syntax.  
-See `docs/parsing.md`.
+Uses vendored tree-sitter-markdown with `EXTENSION_WIKI_LINK` and `EXTENSION_TAGS` enabled.
+See `crates/tree-sitter-md-obsidian/` for grammar details.
 
 **Step 6 — Index store (`src/index_store.rs`)**  
 Tantivy schema + build + query. Tags and links as JSON sidecars.  

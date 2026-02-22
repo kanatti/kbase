@@ -1,9 +1,17 @@
+[workspace]
+members = [".", "crates/tree-sitter-md-obsidian"]
+resolver = "2"
+
 [package]
 name = "kbase"
 version = "0.1.0"
 edition = "2024"
 description = "Personal knowledge base CLI for markdown vaults"
 repository = "https://github.com/kanatti/kbase"
+
+[lib]
+name = "kbase"
+path = "src/lib.rs"
 
 [[bin]]
 name = "kbase"
@@ -34,6 +42,10 @@ dirs = "6.0.0"
 shellexpand = "3.1.1"
 anyhow = "1.0.101"
 toml = "1.0.2"
+
+# Tree-sitter parsing
+tree-sitter = "0.26"
+tree-sitter-md-obsidian = { path = "crates/tree-sitter-md-obsidian" }
 
 # Phase 2: SQLite FTS5 index (commented out until needed)
 # rusqlite = { version = "0.38", features = ["bundled"] }

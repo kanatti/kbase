@@ -2,6 +2,7 @@ mod commands;
 mod config;
 mod domains;
 mod output;
+mod parser;
 mod tags;
 mod vault;
 

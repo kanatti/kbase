@@ -1,3 +1,4 @@
+use crate::parser::{MarkdownParser, TreeSitterParser};
 use crate::vault::Vault;
 use anyhow::Result;
 
@@ -5,7 +6,7 @@ pub fn handle_read(vault: &Vault, path: String, outline: bool, line_numbers: boo
     let content = vault.read_note(&path)?;
 
     if outline {
-        print_outline(&content, line_numbers);
+        print_outline(&content, line_numbers)?;
     } else {
         print_content(&content, line_numbers);
     }
@@ -23,47 +24,32 @@ fn print_line_numbered(line_num: usize, text: impl std::fmt::Display, width: usi
     println!("{:>width$}\t{}", line_num, text, width = width);
 }
 
-/// Print only the heading lines from `content`, indented by heading level.
-///
-/// A heading line starts with 1–6 `#` characters followed by a space.
-/// Indentation: `(level - 1) * 2` spaces prepended before the `#` characters.
-///
-/// Example output for a 3-level document:
-/// ```text
-/// # Title
-///   ## Section
-///     ### Subsection
-/// ```
-///
-/// If `line_numbers` is true, shows the original line number from the source file
-/// where each heading appears (cat -n style formatting).
-fn print_outline(content: &str, line_numbers: bool) {
-    let lines: Vec<&str> = content.lines().collect();
+/// Print heading outline, indented by level.
+/// Optionally shows line numbers where each heading appears.
+fn print_outline(content: &str, line_numbers: bool) -> Result<()> {
+    let mut parser = TreeSitterParser::new()?;
+    let parsed = parser.parse(content)?;
+
     let width = if line_numbers {
-        line_number_width(lines.len())
+        line_number_width(content.lines().count())
     } else {
         0
     };
 
-    for (line_num, line) in lines.iter().enumerate() {
-        // Count leading '#' characters
-        let hash_count = line.chars().take_while(|&c| c == '#').count();
-        if hash_count == 0 || hash_count > 6 {
-            continue;
-        }
-        // The character right after the hashes must be a space
-        if !line[hash_count..].starts_with(' ') {
-            continue;
-        }
-        let indent = "  ".repeat(hash_count - 1);
-        let text = format!("{}{}", indent, line.trim());
+    // Print each heading with indentation and markdown markers
+    for heading in parsed.headings {
+        let indent = "  ".repeat((heading.level - 1) as usize);
+        let markers = "#".repeat(heading.level as usize);
+        let text = format!("{}{} {}", indent, markers, heading.text);
 
         if line_numbers {
-            print_line_numbered(line_num + 1, text, width);
+            print_line_numbered(heading.line, text, width);
         } else {
             println!("{}", text);
         }
     }
+
+    Ok(())
 }
 
 /// Print full content, optionally with line numbers (cat -n style).

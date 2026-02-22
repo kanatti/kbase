@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::path::Path;
 
-use crate::tags::extract_tags;
+use crate::parser::{MarkdownParser, TreeSitterParser};
 use crate::vault::Vault;
 
 /// Bidirectional index for fast tag queries.
@@ -34,13 +34,16 @@ impl TagIndex {
     pub fn build_from_vault(vault: &Vault) -> Result<Self> {
         let mut tag_map: HashMap<String, Vec<String>> = HashMap::new();
         let all_notes = vault.all_notes()?;
+        let mut parser = TreeSitterParser::new()?;
 
         for note in &all_notes {
             let path_str = note.path.to_string_lossy().to_string();
             let content = vault.read_note(&path_str)?;
-            let tags = extract_tags(&content);
 
-            for tag in tags {
+            // Use tree-sitter parser to extract tags
+            let parsed = parser.parse(&content)?;
+
+            for tag in parsed.tags {
                 tag_map
                     .entry(tag)
                     .or_insert_with(Vec::new)
