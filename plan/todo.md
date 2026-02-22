@@ -9,3 +9,7 @@
 ## tags
 
 - [ ] Implement `kbase tags --domain <domain>` to filter tags by domain (uses `TagIndex::filter_by_domains()`)
+
+## Others
+- [ ] Output format `--json`
+- [ ] Read notes without `.md` extension.
