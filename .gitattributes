@@ -1,0 +1,3 @@
+# Exclude vendored tree-sitter generated C/H files from GitHub language stats
+crates/tree-sitter-md-obsidian/src/**/*.c linguist-generated=true
+crates/tree-sitter-md-obsidian/src/**/*.h linguist-generated=true
