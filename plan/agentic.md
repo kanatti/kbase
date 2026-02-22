@@ -602,6 +602,378 @@ kbase compare lucene datafusion --concept compression
 
 ---
 
+## Multi-Agent Patterns
+
+Some kbase operations are perfect for **sub-agent delegation** - where a main agent spawns specialized sub-agents to explore, then synthesizes their findings.
+
+### Which Features Benefit from Sub-Agents?
+
+#### **1. Knowledge Graph Exploration** (High Value)
+**Pattern**: Main agent asks "what's in the lucene domain?", sub-agent explores and reports back
+
+**Why Sub-Agent**:
+- Graph traversal is exploratory and recursive
+- Sub-agent can follow links autonomously without polluting main agent's context
+- Main agent gets a condensed map instead of full content
+- Parallel exploration: multiple sub-agents can explore different starting points
+
+**Command**:
+```bash
+kbase graph explore lucene/01-home.md --depth 3 --format summary
+```
+
+**Sub-Agent Output**:
+```json
+{
+  "exploration_root": "lucene/01-home.md",
+  "depth_reached": 3,
+  "discovered": {
+    "total_notes": 15,
+    "key_topics": ["search-flow", "codecs", "indexing", "bkd-trees"],
+    "clusters": [
+      {"topic": "indexing", "notes": 5, "central_note": "lucene/bkd-trees.md"},
+      {"topic": "search", "notes": 6, "central_note": "lucene/search-flow.md"}
+    ],
+    "hubs": [
+      {"note": "lucene/codecs.md", "links": 12, "backlinks": 8}
+    ]
+  },
+  "reading_path": [
+    "lucene/01-home.md",
+    "lucene/indexing-basics.md",
+    "lucene/bkd-trees.md"
+  ]
+}
+```
+
+**Main Agent Workflow**:
+1. Main agent: "I need to understand Lucene"
+2. Spawn sub-agent: "Explore lucene domain, give me a map"
+3. Sub-agent: Follows links, builds graph, identifies clusters
+4. Sub-agent returns: Condensed summary (500 tokens instead of 20K)
+5. Main agent: "Okay, now fetch me lucene/bkd-trees.md" (targeted read)
+
+#### **2. Multi-Domain Research** (High Value)
+**Pattern**: Main agent asks "how do Lucene and DataFusion handle compression?", spawns 2 sub-agents in parallel
+
+**Why Sub-Agent**:
+- Each domain is independent, can be explored in parallel
+- Sub-agents can use specialized prompts per domain
+- Results are synthesized by main agent (comparison, contrast)
+- Token budget distributed across sub-agents
+
+**Commands**:
+```bash
+# Sub-agent 1:
+kbase search "compression" --domain lucene --format snippets
+
+# Sub-agent 2:
+kbase search "compression" --domain datafusion --format snippets
+```
+
+**Main Agent Workflow**:
+1. Main agent: "Compare compression approaches in Lucene vs DataFusion"
+2. Spawn sub-agent-1: "Find Lucene compression info"
+3. Spawn sub-agent-2: "Find DataFusion compression info"
+4. Both sub-agents work in parallel (2× faster)
+5. Main agent receives both reports
+6. Main agent synthesizes: "Lucene uses X, DataFusion uses Y, key difference is Z"
+
+#### **3. Gap Detection & Analysis** (Medium Value)
+**Pattern**: Main agent working on task, sub-agent runs async gap analysis
+
+**Why Sub-Agent**:
+- Gap detection is comprehensive (scans whole vault)
+- Can run in background while main agent works
+- Results guide future exploration
+- Non-blocking operation
+
+**Command**:
+```bash
+kbase gaps --domain lucene --detailed
+```
+
+**Sub-Agent Output**:
+```json
+{
+  "domain": "lucene",
+  "gaps_found": 12,
+  "high_priority": [
+    {
+      "type": "unresolved_link",
+      "target": "segment-merging",
+      "mentioned_in": 5,
+      "context": ["search-flow.md", "codecs.md", ...]
+    },
+    {
+      "type": "mentioned_concept",
+      "concept": "index warming",
+      "occurrences": 7,
+      "should_document": true
+    }
+  ],
+  "recommendations": [
+    "Create note for 'segment-merging' (referenced 5 times)",
+    "Document 'index warming' concept"
+  ]
+}
+```
+
+**Main Agent Workflow**:
+1. Main agent: Working on feature implementation
+2. Spawn sub-agent: "Analyze knowledge gaps in lucene domain"
+3. Main agent: Continues working (non-blocking)
+4. Sub-agent: Scans vault, identifies gaps, returns report
+5. Main agent: Reviews gaps when convenient, decides what to document
+
+#### **4. Context Assembly with Strategy Comparison** (Medium Value)
+**Pattern**: Main agent unsure which context strategy is best, sub-agents try different approaches
+
+**Why Sub-Agent**:
+- Different strategies yield different context
+- Sub-agents can try multiple approaches in parallel
+- Main agent selects best result based on task
+- Exploration vs exploitation trade-off
+
+**Commands**:
+```bash
+# Sub-agent 1: Breadth-first
+kbase bundle lucene/search-flow.md --strategy breadth-first --max-tokens 5000
+
+# Sub-agent 2: Importance-weighted
+kbase bundle lucene/search-flow.md --strategy importance --max-tokens 5000
+
+# Sub-agent 3: Tag-guided
+kbase bundle lucene/search-flow.md --follow-tags deep-dive --max-tokens 5000
+```
+
+**Main Agent Workflow**:
+1. Main agent: "I need context about search-flow but not sure what's relevant"
+2. Spawn 3 sub-agents with different strategies
+3. Sub-agents assemble context independently
+4. Main agent receives 3 different context bundles
+5. Main agent evaluates: "Breadth-first gave best overview, use that"
+
+#### **5. Semantic Search with Query Expansion** (Low-Medium Value)
+**Pattern**: Sub-agent reformulates query, tries variations, finds best results
+
+**Why Sub-Agent**:
+- Query reformulation is iterative
+- Can try multiple search strategies
+- Sub-agent can evaluate which queries yield best results
+- Returns consolidated, ranked results
+
+**Sub-Agent Workflow**:
+```python
+# Sub-agent internal logic
+queries = [
+    "BKD tree indexing",
+    "block KD tree spatial indexing", 
+    "multidimensional point indexing lucene"
+]
+
+results = []
+for q in queries:
+    r = kbase_search(q, semantic=True)
+    results.extend(r)
+
+# Deduplicate, re-rank, return top K
+return dedupe_and_rank(results, k=10)
+```
+
+#### **6. Dependency Path Finding** (Low Value, but interesting)
+**Pattern**: Sub-agent finds multiple paths between notes, main agent selects best
+
+**Why Sub-Agent**:
+- Path finding can be complex (multiple routes)
+- Sub-agent can evaluate path quality (shortest, most relevant, etc.)
+- Returns ranked paths for main agent to choose
+
+**Command**:
+```bash
+kbase graph paths lucene/01-home.md lucene/bkd-trees.md --all
+```
+
+---
+
+### Sub-Agent Feature Requirements
+
+To support multi-agent workflows well, kbase needs:
+
+#### **1. Structured Output (JSON)**
+- All commands should support `--format json`
+- Consistent schema across commands
+- Metadata included (timing, token counts, confidence)
+
+#### **2. Summary/Condensed Modes**
+- `--summary` flag: Return overview, not full content
+- Token budgets: `--max-tokens N`
+- Snippet extraction: `--format snippets`
+
+Example:
+```bash
+kbase graph explore <note> --summary
+# Returns: Topic map, key notes, reading path (500 tokens)
+# Instead of: Full content of all discovered notes (20K tokens)
+```
+
+#### **3. Parallel-Friendly Commands**
+- Stateless: No side effects, safe to run in parallel
+- Read-only: All queries are reads (index is pre-built)
+- Fast: Sub-second response for most queries
+
+#### **4. Confidence/Quality Scores**
+- Search results: BM25 scores, semantic similarity
+- Link relevance: Backlink count, centrality scores
+- Gap priority: Mention frequency, impact score
+
+This helps main agent decide which sub-agent results to trust/use.
+
+#### **5. Streaming/Incremental Output** (Future)
+For long-running sub-agent tasks:
+```bash
+kbase graph explore <note> --depth 5 --stream
+# Outputs discoveries incrementally as JSON lines
+# Main agent can start processing before full exploration completes
+```
+
+---
+
+### Multi-Agent Workflow Examples
+
+#### **Example 1: Domain Deep-Dive**
+```
+Main Agent Task: "Understand Lucene architecture"
+
+Workflow:
+  1. Main: Spawn sub-agent-1: "Explore lucene domain, give me map"
+  2. Sub-1: Runs `kbase graph explore lucene/01-home.md --summary`
+  3. Sub-1 returns: {clusters, hubs, reading_path}
+  4. Main: "I see 3 clusters: indexing, search, analysis"
+  5. Main: Spawn 3 sub-agents, one per cluster
+     - Sub-2: "Fetch context for indexing cluster"
+     - Sub-3: "Fetch context for search cluster"  
+     - Sub-4: "Fetch context for analysis cluster"
+  6. Main: Receives all 3 context bundles
+  7. Main: Synthesizes understanding of entire domain
+```
+
+**Token Efficiency**: 
+- Without sub-agents: 50K tokens (read everything)
+- With sub-agents: 15K tokens (targeted exploration)
+
+#### **Example 2: Cross-Domain Research**
+```
+Main Agent Task: "How do search engines handle high-cardinality fields?"
+
+Workflow:
+  1. Main: Spawn 3 sub-agents in parallel
+     - Sub-1: Search lucene domain
+     - Sub-2: Search elasticsearch domain
+     - Sub-3: Search datafusion domain
+  2. Each sub runs: `kbase search "high cardinality" --domain X`
+  3. All return results in ~2 seconds (parallel)
+  4. Main: Compares findings:
+     - Lucene: Doc values, sparse encoding
+     - Elasticsearch: Aggregations, cardinality estimation
+     - DataFusion: Dictionary encoding
+  5. Main: Synthesizes comparative answer
+```
+
+**Speed**: 3× faster than sequential search
+
+#### **Example 3: Incremental Knowledge Building**
+```
+Main Agent Task: Working on code, occasionally needs context
+
+Workflow:
+  1. Main: Coding DataFusion feature
+  2. Main: "Hmm, how does Lucene do this?"
+  3. Spawn sub-agent: "Quick search: Lucene + <concept>"
+  4. Sub returns: Snippet + note path
+  5. Main: "Good enough" or "Need more detail"
+  6. If more detail: "Fetch full note + context"
+  7. Main: Continues coding with new knowledge
+```
+
+**Pattern**: Lightweight queries via sub-agents, full context only when needed
+
+---
+
+### Implementation Considerations
+
+#### **1. Command Design for Sub-Agents**
+All commands should support:
+```bash
+kbase <command> --format json --summary --max-tokens N
+```
+
+This trio enables:
+- **JSON**: Structured output for programmatic parsing
+- **Summary**: Condensed results (sub-agent → main agent communication)
+- **Max tokens**: Budget control (prevent sub-agent from using all tokens)
+
+#### **2. Exit Codes & Error Handling**
+Sub-agents need clear success/failure signals:
+```bash
+kbase search "xyz" --domain lucene
+# Exit 0: Found results
+# Exit 1: No results found
+# Exit 2: Error (domain doesn't exist, index missing, etc.)
+```
+
+Main agent can handle failures gracefully:
+- Exit 1: Try different query/domain
+- Exit 2: Check prerequisites (run `kbase index`?)
+
+#### **3. Logging & Observability**
+When debugging multi-agent workflows:
+```bash
+KBASE_LOG=debug kbase graph explore <note>
+# Logs: Nodes visited, decisions made, timing
+# Helps debug sub-agent behavior
+```
+
+#### **4. Timeouts**
+Sub-agents shouldn't hang:
+```bash
+kbase graph explore <note> --timeout 30s
+# Kills operation after 30 seconds
+# Returns partial results or error
+```
+
+---
+
+### Benefits of Multi-Agent Patterns
+
+1. **Parallelization**: 3 domains explored in parallel = 3× speedup
+2. **Specialization**: Sub-agents can have domain-specific prompts
+3. **Token Efficiency**: Sub-agents return summaries, not full content
+4. **Modularity**: Main agent orchestrates, sub-agents execute
+5. **Fault Isolation**: Sub-agent failure doesn't crash main agent
+6. **Exploration**: Sub-agents can explore autonomously, report findings
+
+---
+
+### Priority for Sub-Agent Support
+
+**High Priority** (Implement in Phase 1-2):
+- JSON output for all commands
+- Summary/condensed modes
+- Token budgeting (`--max-tokens`)
+
+**Medium Priority** (Phase 2-3):
+- Confidence scores in results
+- Streaming output for long operations
+- Better error codes and handling
+
+**Low Priority** (Future):
+- Advanced orchestration patterns
+- Sub-agent result caching
+- Cross-vault sub-agents
+
+---
+
 ## Success Metrics
 
 How do we know these features are valuable for agents?
@@ -611,6 +983,7 @@ How do we know these features are valuable for agents?
 3. **Coverage**: % of agent queries that find relevant information
 4. **Navigation**: Steps to find info (1 command vs 5+ manual steps)
 5. **Discovery**: Can agents find information they didn't know to ask about?
+6. **Parallelization**: Multi-agent speedup for cross-domain tasks (2-3× faster)
 
 ---
 
