@@ -103,13 +103,43 @@ impl Vault {
         fs::read_to_string(&full_path).with_context(|| format!("Could not read {}", path))
     }
 
-    /// List all .md notes across the entire vault (all domains).
+    /// List all .md notes across the entire vault (all domains + root level).
     pub fn all_notes(&self) -> Result<Vec<Note>> {
         let mut all = Vec::new();
+        
+        // Add root-level notes
+        for entry in read_dir(&self.root)? {
+            let entry = entry?;
+            let path = entry.path();
+            
+            if is_valid_note(&path) {
+                let filename = path.file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("")
+                    .to_string();
+                let stem = path.file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or(&filename)
+                    .to_string();
+                let title = read_first_heading(&path).unwrap_or(stem);
+                let rel_path = path.strip_prefix(&self.root)
+                    .unwrap_or(&path)
+                    .to_path_buf();
+                
+                all.push(Note {
+                    path: rel_path,
+                    filename,
+                    title,
+                });
+            }
+        }
+        
+        // Add notes from all domains
         for domain in self.domains()? {
             let mut notes = self.notes_in_domain(&domain.name)?;
             all.append(&mut notes);
         }
+        
         Ok(all)
     }
 

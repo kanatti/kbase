@@ -4,6 +4,8 @@ How TermQuery flows through IndexSearcher, Weight, Scorer and into TopDocs.
 
 This is a #deep-dive into #lucene #indexing and #performance optimization.
 
+Related: [[codecs]] and [[indexing/inverted-index]]
+
 ## Phase 1: IndexSearcher.search()
 
 Entry point for all searches in Lucene. This covers #search-internals.

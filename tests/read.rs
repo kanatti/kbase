@@ -11,28 +11,30 @@ const EXPECTED_READ_WITH_LINE_NUMBERS: &str = r#"     1	# Search Flow Deep Dive
      4	
      5	This is a #deep-dive into #lucene #indexing and #performance optimization.
      6	
-     7	## Phase 1: IndexSearcher.search()
+     7	Related: [[codecs]] and [[indexing/inverted-index]]
      8	
-     9	Entry point for all searches in Lucene. This covers #search-internals.
+     9	## Phase 1: IndexSearcher.search()
     10	
-    11	### Step 1: createWeight()
+    11	Entry point for all searches in Lucene. This covers #search-internals.
     12	
-    13	Weight wraps the query for reuse across segments.
+    13	### Step 1: createWeight()
     14	
-    15	### Step 2: BulkScorer
+    15	Weight wraps the query for reuse across segments.
     16	
-    17	Scores documents in bulk for a segment.
+    17	### Step 2: BulkScorer
     18	
-    19	## Phase 2: Scoring
+    19	Scores documents in bulk for a segment.
     20	
-    21	Final BM25 scoring and TopDocs collection. The #scoring algorithm is #wip.
+    21	## Phase 2: Scoring
+    22	
+    23	Final BM25 scoring and TopDocs collection. The #scoring algorithm is #wip.
 "#;
 
 const EXPECTED_OUTLINE_WITH_LINE_NUMBERS: &str = r#"     1	# Search Flow Deep Dive
-     7	  ## Phase 1: IndexSearcher.search()
-    11	    ### Step 1: createWeight()
-    15	    ### Step 2: BulkScorer
-    19	  ## Phase 2: Scoring
+     9	  ## Phase 1: IndexSearcher.search()
+    13	    ### Step 1: createWeight()
+    17	    ### Step 2: BulkScorer
+    21	  ## Phase 2: Scoring
 "#;
 
 // ---------------------------------------------------------------------------

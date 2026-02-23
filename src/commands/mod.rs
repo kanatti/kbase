@@ -3,6 +3,7 @@
 pub mod config;
 pub mod domains;
 pub mod index;
+pub mod links;
 pub mod notes;
 pub mod read;
 pub mod tags;
@@ -46,6 +47,15 @@ pub fn handle_command(command: Command) -> Result<()> {
         Command::Tags { sort } => {
             let vault = open_vault()?;
             tags::handle_tags(&vault, sort)
+        }
+        Command::Links {
+            note,
+            forward,
+            backward,
+            json,
+        } => {
+            let vault = open_vault()?;
+            links::handle_links(&vault, note, forward, backward, json)
         }
         Command::Index { only } => {
             let vault = open_vault()?;

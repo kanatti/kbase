@@ -1,6 +1,7 @@
 mod commands;
 mod config;
 mod domains;
+mod links;
 mod output;
 mod parser;
 mod tags;
@@ -92,6 +93,24 @@ pub enum Command {
         /// Field to sort by
         #[arg(long, default_value_t = SortBy::Name, value_enum)]
         sort: SortBy,
+    },
+
+    /// Show links for a note (forward, backward, or both)
+    Links {
+        /// Note path (e.g. lucene/search-flow.md)
+        note: String,
+
+        /// Show only forward links (notes this note links to)
+        #[arg(long)]
+        forward: bool,
+
+        /// Show only backward links (notes that link to this note)
+        #[arg(long)]
+        backward: bool,
+
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
     },
 
     /// Build search and tag indexes
