@@ -40,6 +40,11 @@ impl Vault {
         Ok(kbase_home()?.join(&self.name))
     }
 
+    /// Get the directory where repository descriptions are stored.
+    pub fn repos_dir(&self) -> PathBuf {
+        self.root.join("_repos")
+    }
+
     /// Load the tag index for this vault.
     /// Returns None if the index hasn't been built yet.
     pub fn load_tag_index(&self) -> Result<Option<TagIndex>> {

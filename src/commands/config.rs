@@ -28,7 +28,10 @@ pub fn handle_add(name: String, path: String) -> Result<()> {
 
     config
         .vaults
-        .insert(name.clone(), VaultConfig { path: vault_path });
+        .insert(name.clone(), VaultConfig {
+            path: vault_path,
+            repos: HashMap::new(),
+        });
 
     // If this is the first vault, make it active
     if config.vaults.len() == 1 {

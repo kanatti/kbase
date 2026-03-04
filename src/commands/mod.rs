@@ -6,6 +6,7 @@ pub mod index;
 pub mod links;
 pub mod notes;
 pub mod read;
+pub mod repos;
 pub mod tags;
 
 use crate::config::Config;
@@ -60,6 +61,10 @@ pub fn handle_command(command: Command) -> Result<()> {
         Command::Index { only } => {
             let vault = open_vault()?;
             index::handle_index(&vault, only)
+        }
+        Command::Repo { command } => {
+            let vault = open_vault()?;
+            repos::handle_repo(&vault, command)
         }
     }
 }

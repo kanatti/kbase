@@ -4,6 +4,7 @@ mod domains;
 mod links;
 mod output;
 mod parser;
+mod repos;
 mod tags;
 mod vault;
 
@@ -118,6 +119,44 @@ pub enum Command {
         /// Build only specific indexes (tags, links, search). Default: build all
         #[arg(long, value_enum)]
         only: Vec<IndexType>,
+    },
+
+    /// Manage repository descriptions
+    Repo {
+        #[command(subcommand)]
+        command: RepoCommand,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum RepoCommand {
+    /// List all repositories
+    List {
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Show repository description
+    Describe {
+        /// Repository name
+        #[arg(long)]
+        name: String,
+
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Configure local path for a repository
+    Configure {
+        /// Repository name
+        #[arg(long)]
+        name: String,
+
+        /// Local filesystem path
+        #[arg(long)]
+        path: String,
     },
 }
 

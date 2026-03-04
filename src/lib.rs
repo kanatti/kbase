@@ -6,5 +6,6 @@ pub mod domains;
 pub mod links;
 pub mod output;
 pub mod parser;
+pub mod repos;
 pub mod tags;
 pub mod vault;

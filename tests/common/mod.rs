@@ -21,13 +21,27 @@ pub fn setup_vault() -> TempDir {
 
 /// Build a `kbase` command with a properly configured vault in the temp directory.
 pub fn kbase(tmp: &TempDir) -> Command {
+    kbase_impl(tmp, false)
+}
+
+/// Build a `kbase` command with persistent config (doesn't overwrite config on each call).
+/// Use this when testing commands that modify config (like repo configure).
+pub fn kbase_persist(tmp: &TempDir) -> Command {
+    kbase_impl(tmp, true)
+}
+
+fn kbase_impl(tmp: &TempDir, persist: bool) -> Command {
     let mut cmd = cargo_bin_cmd!("kbase");
 
     // Set KBASE_HOME to point directly to the .kbase dir inside the temp directory
     cmd.env("KBASE_HOME", tmp.path().join(".kbase"));
 
     // Create a proper config file for the vault
-    setup_vault_config(tmp);
+    if !persist {
+        setup_vault_config(tmp);
+    } else {
+        setup_vault_config_if_needed(tmp);
+    }
 
     cmd
 }
@@ -51,6 +65,14 @@ path = "{}"
 
     let config_path = config_dir.join("config.toml");
     fs::write(&config_path, config_content).unwrap();
+}
+
+/// Set up config only if it doesn't already exist (for persistent config tests).
+fn setup_vault_config_if_needed(tmp: &TempDir) {
+    let config_path = tmp.path().join(".kbase").join("config.toml");
+    if !config_path.exists() {
+        setup_vault_config(tmp);
+    }
 }
 
 fn copy_dir(src: &Path, dst: &Path) -> std::io::Result<()> {
