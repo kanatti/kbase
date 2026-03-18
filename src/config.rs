@@ -77,11 +77,11 @@ impl Config {
                 };
                 let left = format!("{}{}", marker, name);
                 let right = vault_config.path.display().to_string();
-                (left, right)
+                vec![left, right]
             })
             .collect();
 
-        output::print_table(("Vault", "Path"), &rows);
+        output::print_table(&["Vault", "Path"], &rows);
     }
 }
 

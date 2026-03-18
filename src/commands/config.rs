@@ -63,17 +63,53 @@ pub fn handle_use(name: String) -> Result<()> {
     Ok(())
 }
 
-pub fn handle_vaults() -> Result<()> {
+pub fn handle_vaults(json: bool) -> Result<()> {
     let config = Config::load()?;
 
     if config.vaults.is_empty() {
-        println!("No vaults configured.");
-        println!("Run `kbase add <name> <path>` to add a vault.");
+        if json {
+            output_json_vaults(&config)?;
+        } else {
+            println!("No vaults configured.");
+            println!("Run `kbase add <name> <path>` to add a vault.");
+        }
         return Ok(());
     }
 
-    config.print_vaults();
+    if json {
+        output_json_vaults(&config)?;
+    } else {
+        config.print_vaults();
+    }
 
+    Ok(())
+}
+
+/// Output vaults as JSON
+fn output_json_vaults(config: &Config) -> Result<()> {
+    use serde_json::json;
+
+    let cfg_path = config_path()?;
+    let vaults: Vec<_> = config
+        .vaults
+        .iter()
+        .map(|(name, vault_config)| {
+            let active = name == &config.active_vault;
+            json!({
+                "name": name,
+                "path": vault_config.path.to_string_lossy(),
+                "active": active,
+            })
+        })
+        .collect();
+
+    let result = json!({
+        "config_path": cfg_path.to_string_lossy(),
+        "vaults": vaults,
+        "count": config.vaults.len()
+    });
+
+    println!("{}", serde_json::to_string_pretty(&result)?);
     Ok(())
 }
 

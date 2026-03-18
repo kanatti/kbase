@@ -18,12 +18,7 @@ fn domains_lists_all() {
     )
     .unwrap();
 
-    let expected = "\
-Domain         Notes  Description
-elasticsearch  3      Distributed search and analytics engine built on top of Lucene.
-lucene         5      Core full-text search library internals and algorithms used by Elasticsearch and Solr.
-rust           1      
-";
+    let expected = " Domain        | Notes | Description                                                                            \n---------------+-------+----------------------------------------------------------------------------------------\n elasticsearch | 3     | Distributed search and analytics engine built on top of Lucene.                        \n lucene        | 5     | Core full-text search library internals and algorithms used by Elasticsearch and Solr. \n rust          | 1     |                                                                                        \n";
 
     assert_eq!(output, expected);
 }
@@ -43,12 +38,7 @@ fn domains_sorted_by_count() {
     )
     .unwrap();
 
-    let expected = "\
-Domain         Notes  Description
-lucene         5      Core full-text search library internals and algorithms used by Elasticsearch and Solr.
-elasticsearch  3      Distributed search and analytics engine built on top of Lucene.
-rust           1      
-";
+    let expected = " Domain        | Notes | Description                                                                            \n---------------+-------+----------------------------------------------------------------------------------------\n lucene        | 5     | Core full-text search library internals and algorithms used by Elasticsearch and Solr. \n elasticsearch | 3     | Distributed search and analytics engine built on top of Lucene.                        \n rust          | 1     |                                                                                        \n";
 
     assert_eq!(output, expected);
 }

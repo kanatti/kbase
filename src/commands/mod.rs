@@ -22,19 +22,20 @@ pub fn handle_command(command: Command) -> Result<()> {
         Command::Config => config::handle_config(),
         Command::Add { name, path } => config::handle_add(name, path),
         Command::Use { name } => config::handle_use(name),
-        Command::Vaults => config::handle_vaults(),
-        Command::Domains { sort } => {
+        Command::Vaults { json } => config::handle_vaults(json),
+        Command::Domains { sort, json } => {
             let vault = open_vault()?;
-            domains::handle_domains(&vault, sort)
+            domains::handle_domains(&vault, sort, json)
         }
         Command::Notes {
             domain,
             term,
             tag,
             files,
+            json,
         } => {
             let vault = open_vault()?;
-            notes::handle_notes(&vault, domain, term, tag, files)
+            notes::handle_notes(&vault, domain, term, tag, files, json)
         }
         Command::Read {
             path,
@@ -44,9 +45,9 @@ pub fn handle_command(command: Command) -> Result<()> {
             let vault = open_vault()?;
             read::handle_read(&vault, path, outline, line_numbers)
         }
-        Command::Tags { sort } => {
+        Command::Tags { sort, json } => {
             let vault = open_vault()?;
-            tags::handle_tags(&vault, sort)
+            tags::handle_tags(&vault, sort, json)
         }
         Command::Links {
             note,

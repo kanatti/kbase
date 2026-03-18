@@ -81,14 +81,69 @@ fn notes_unknown_domain_gives_error() {
 }
 
 #[test]
-fn notes_term_not_yet_implemented() {
+fn notes_term_requires_index() {
     let tmp = setup_vault();
 
+    // Without building index first, --term should fail with helpful error
     kbase(&tmp)
         .args(["notes", "--term", "search"])
         .assert()
         .failure()
-        .stderr(contains("not yet implemented"));
+        .stderr(contains("Run 'kbase index'"));
+}
+
+#[test]
+fn notes_term_search_works() {
+    let tmp = setup_vault();
+
+    // Build index first
+    kbase(&tmp).arg("index").assert().success();
+
+    // Search for a term
+    let out = kbase(&tmp)
+        .args(["notes", "--term", "search"])
+        .assert()
+        .success();
+    
+    let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
+    
+    // Should find results with "search" in them
+    assert!(stdout.contains(".md"), "Should contain markdown files");
+}
+
+#[test]
+fn notes_term_with_domain_filter() {
+    let tmp = setup_vault();
+
+    // Build index first
+    kbase(&tmp).arg("index").assert().success();
+
+    // Search within specific domain
+    kbase(&tmp)
+        .args(["notes", "--term", "lucene", "--domain", "lucene"])
+        .assert()
+        .success()
+        .stdout(contains("lucene/"));
+}
+
+#[test]
+fn notes_term_with_files_flag() {
+    let tmp = setup_vault();
+
+    // Build index first
+    kbase(&tmp).arg("index").assert().success();
+
+    // Search with --files flag
+    let out = kbase(&tmp)
+        .args(["notes", "--term", "search", "--files"])
+        .assert()
+        .success();
+    
+    let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
+    
+    // Should only show paths, not titles
+    assert!(stdout.contains(".md"));
+    assert!(!stdout.contains("Path"), "Should not have table header with --files");
 }
 
 // ============================================================================

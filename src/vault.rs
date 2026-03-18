@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
+use serde::Serialize;
 use walkdir::WalkDir;
 
 use crate::config::kbase_home;
@@ -15,11 +16,13 @@ pub struct Vault {
 }
 
 /// A top-level domain folder inside a vault.
+#[derive(Serialize)]
 pub struct Domain {
     pub name: String,
     pub note_count: usize,
 }
 
+#[derive(Serialize)]
 pub struct Note {
     /// Path relative to vault root (e.g. "lucene/search-flow.md")
     pub path: PathBuf,

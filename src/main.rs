@@ -4,6 +4,7 @@ mod domains;
 mod links;
 mod output;
 mod parser;
+mod search;
 mod tags;
 mod vault;
 
@@ -46,13 +47,21 @@ pub enum Command {
     Use { name: String },
 
     /// List all configured vaults
-    Vaults,
+    Vaults {
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
+    },
 
     /// List all domains with note counts
     Domains {
         /// Field to sort by
         #[arg(long, default_value_t = SortBy::Name, value_enum)]
         sort: SortBy,
+
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
     },
 
     /// List notes (all, or filtered by domain or search term)
@@ -72,6 +81,10 @@ pub enum Command {
         /// Show filenames only, no titles
         #[arg(long)]
         files: bool,
+
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
     },
 
     /// Print a note's content (raw markdown or heading outline)
@@ -93,6 +106,10 @@ pub enum Command {
         /// Field to sort by
         #[arg(long, default_value_t = SortBy::Name, value_enum)]
         sort: SortBy,
+
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
     },
 
     /// Show links for a note (forward, backward, or both)
@@ -122,11 +139,26 @@ pub enum Command {
 }
 
 fn main() {
+    // Reset SIGPIPE to default behavior on Unix.
+    // By default, Rust ignores SIGPIPE, which causes broken pipe errors
+    // to be returned to the program (and panic if unhandled).
+    // Traditional Unix tools exit silently when receiving SIGPIPE.
+    #[cfg(unix)]
+    reset_sigpipe();
+
     if let Err(e) = run() {
         eprintln!("Error: {e:#}");
         std::process::exit(1);
     }
 }
+
+#[cfg(unix)]
+fn reset_sigpipe() {
+    unsafe {
+        libc::signal(libc::SIGPIPE, libc::SIG_DFL);
+    }
+}
+
 
 fn run() -> Result<()> {
     let cli = Cli::parse();

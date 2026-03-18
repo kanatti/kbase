@@ -21,38 +21,41 @@ path = "src/main.rs"
 # CLI
 clap = { version = "4.5", features = ["derive", "env"] }
 
-# File traversal (ripgrep's own crate — gitignore-aware, handles excludes)
+# SIGPIPE handling (Unix only)
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+# File traversal
 ignore = "0.4"
 walkdir = "2.5"
 
-# Text parsing
-regex = "1.12"
-once_cell = "1.19"
-
-# Serialization (--json output for pi agent)
+# Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+toml = "1.0.2"
 
 # Terminal output
 colored = "3.1"
+tabled = "0.17"
 
 # Date handling (daily notes)
 chrono = "0.4"
-dirs = "6.0.0"
-shellexpand = "3.1.1"
-anyhow = "1.0.101"
-toml = "1.0.2"
 
 # Tree-sitter parsing
 tree-sitter = "0.26"
 tree-sitter-md-obsidian = { path = "crates/tree-sitter-md-obsidian" }
 
-# Phase 2: SQLite FTS5 index (commented out until needed)
-# rusqlite = { version = "0.38", features = ["bundled"] }
+# Full-text search
+tantivy = "0.22"
 
-# Phase 2: Interactive research TUI (commented out until needed)
-# ratatui = "0.30"
-# crossterm = "0.29"
+# Utils
+dirs = "6.0.0"
+shellexpand = "3.1.1"
+anyhow = "1.0.101"
+regex = "1.12"
+once_cell = "1.19"
+
+
 
 [profile.release]
 opt-level = 3
@@ -62,3 +65,4 @@ strip = true
 assert_cmd = "2.1.2"
 predicates = "3.1.4"
 tempfile = "3.25.0"
+serial_test = "3.0"

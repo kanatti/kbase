@@ -1,5 +1,6 @@
 use crate::{
     output,
+    search::{SearchQuery, SearchService, SearchRepository},
     vault::{Note, Vault},
 };
 use anyhow::Result;
@@ -10,10 +11,59 @@ pub fn handle_notes(
     term: Option<String>,
     tag: Option<String>,
     files: bool,
+    json: bool,
 ) -> Result<()> {
-    if term.is_some() {
-        eprintln!("--term search is not yet implemented");
-        std::process::exit(1);
+    // Handle flag conflicts
+    if json && files {
+        eprintln!("Warning: --files ignored when --json is specified");
+    }
+
+    // If search term provided, use search service
+    if let Some(query_str) = term {
+        // Build query object
+        let mut query = SearchQuery::new(query_str.clone())?;
+        
+        if let Some(domain_name) = domain.as_ref() {
+            query = query.with_domain(domain_name.clone());
+        }
+        
+        query = query.with_limit(50)?;
+        
+        // Execute search
+        let index_path = vault.index_dir()?.join("search.tantivy");
+        let repository = SearchRepository::new(index_path);
+        let service = SearchService::new(repository);
+        
+        let search_results = service.search(&query)?;
+        
+        if search_results.is_empty() {
+            if json {
+                output_json_search(search_results.results(), &query_str, domain.as_deref())?;
+            } else {
+                println!("No results found for '{}'", query_str);
+            }
+            return Ok(());
+        }
+        
+        // Display results
+        if json {
+            output_json_search(search_results.results(), &query_str, domain.as_deref())?;
+        } else if files {
+            // Just print paths (for piping)
+            for result in search_results.results() {
+                println!("{}", result.path);
+            }
+        } else {
+            // Print table with title using shared utility
+            let rows: Vec<_> = search_results.results()
+                .iter()
+                .map(|r| vec![r.path.clone(), r.title.clone()])
+                .collect();
+            
+            output::print_table(&["Path", "Title"], &rows);
+        }
+        
+        return Ok(());
     }
 
     let notes = if let Some(ref tag_name) = tag {
@@ -28,26 +78,32 @@ pub fn handle_notes(
     };
 
     if notes.is_empty() {
-        match (&domain, &tag) {
-            (Some(d), Some(t)) => println!("No notes in domain '{}' with tag '{}'.", d, t),
-            (None, Some(t)) => println!("No notes with tag '{}'.", t),
-            (Some(d), None) => println!("No notes in domain '{}'.", d),
-            (None, None) => println!("No notes found."),
+        if json {
+            output_json_notes(&notes, domain.as_deref(), tag.as_deref(), None)?;
+        } else {
+            match (&domain, &tag) {
+                (Some(d), Some(t)) => println!("No notes in domain '{}' with tag '{}'.", d, t),
+                (None, Some(t)) => println!("No notes with tag '{}'.", t),
+                (Some(d), None) => println!("No notes in domain '{}'.", d),
+                (None, None) => println!("No notes found."),
+            }
         }
         return Ok(());
     }
 
-    if files {
+    if json {
+        output_json_notes(&notes, domain.as_deref(), tag.as_deref(), None)?;
+    } else if files {
         for note in &notes {
             println!("{}", note.path.display());
         }
     } else {
         let rows: Vec<_> = notes
             .iter()
-            .map(|n| (n.path.display().to_string(), n.title.clone()))
+            .map(|n| vec![n.path.display().to_string(), n.title.clone()])
             .collect();
 
-        output::print_table(("Path", "Title"), &rows);
+        output::print_table(&["Path", "Title"], &rows);
     }
 
     Ok(())
@@ -144,4 +200,67 @@ fn read_first_heading(path: &std::path::Path) -> Option<String> {
         }
     }
     None
+}
+
+/// Output notes list as JSON
+fn output_json_notes(
+    notes: &[Note],
+    domain: Option<&str>,
+    tag: Option<&str>,
+    term: Option<&str>,
+) -> Result<()> {
+    use serde_json::json;
+
+    let result = json!({
+        "notes": notes.iter().map(|n| {
+            // Extract domain from path
+            let domain_name = n.path.to_string_lossy()
+                .split('/')
+                .next()
+                .unwrap_or("")
+                .to_string();
+            
+            json!({
+                "path": n.path.to_string_lossy(),
+                "filename": &n.filename,
+                "title": &n.title,
+                "domain": domain_name,
+            })
+        }).collect::<Vec<_>>(),
+        "count": notes.len(),
+        "filters": {
+            "domain": domain,
+            "tag": tag,
+            "term": term,
+        }
+    });
+
+    println!("{}", serde_json::to_string_pretty(&result)?);
+    Ok(())
+}
+
+/// Output search results as JSON
+fn output_json_search(
+    results: &[crate::search::SearchResult],
+    query: &str,
+    domain: Option<&str>,
+) -> Result<()> {
+    use serde_json::json;
+
+    let result = json!({
+        "results": results.iter().map(|r| json!({
+            "path": &r.path,
+            "title": &r.title,
+            "domain": &r.domain,
+            "score": r.relevance.as_f32(),
+        })).collect::<Vec<_>>(),
+        "count": results.len(),
+        "query": query,
+        "filters": {
+            "domain": domain,
+        }
+    });
+
+    println!("{}", serde_json::to_string_pretty(&result)?);
+    Ok(())
 }

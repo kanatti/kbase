@@ -1,4 +1,4 @@
-use crate::{IndexType, links::LinkIndex, tags::TagIndex, vault::Vault};
+use crate::{IndexType, links::LinkIndex, search::SearchIndexer, tags::TagIndex, vault::Vault};
 use anyhow::Result;
 
 pub fn handle_index(vault: &Vault, only: Vec<IndexType>) -> Result<()> {
@@ -28,7 +28,18 @@ pub fn handle_index(vault: &Vault, only: Vec<IndexType>) -> Result<()> {
     }
 
     if only.is_empty() || only.contains(&IndexType::Search) {
-        println!("Search index not yet implemented");
+        println!("Building search index...");
+        
+        let indexer = SearchIndexer::new();
+        let stats = indexer.build_from_vault(vault)?;
+        
+        println!("Indexed {} documents in {:?}", stats.indexed_count(), stats.elapsed());
+        
+        if stats.failed_count() > 0 {
+            eprintln!("Warning: {} documents failed to index", stats.failed_count());
+        }
+        
+        println!("Saved to {}/", stats.index_path().display());
     }
 
     Ok(())

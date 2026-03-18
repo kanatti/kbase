@@ -57,3 +57,19 @@ kbase read kbase/agentic-features.md
 ```
 
 Proactively check domains when topics arise (search, parsing, Rust patterns, etc.).
+
+## Development Practices
+
+### Testing CLI commands
+
+**Prefer using the built binary directly** to avoid cluttering output with compilation warnings:
+
+```bash
+# Build once, then run clean commands
+cargo build -q 2>&1 && ./target/debug/kbase <command>
+
+# Instead of (shows warnings every time):
+cargo run -- <command>
+```
+
+This gives cleaner output when testing CLI behavior, formatting, and output.
